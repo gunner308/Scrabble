@@ -39,6 +39,6 @@ public class GameServer {
     }
 
     public static void main(String args[]) throws IOException, InterruptedException{
-   		new GameServer(1234).listen();
+   		new GameServer(6789).listen();
     }
 }

@@ -13,7 +13,7 @@ public class GameClient {
 	private DataOutputStream outToServer;
 	private Socket skt;
 	private Player player;
-	private Board board[][];
+	private Board board;
 	private int turn;
 	private Vector<LetterMove> currentMove;
 	

@@ -13,6 +13,18 @@ public class Player {
     {
         username = _username;
         score = 0;
-        status = Constants.READY;
+        status = Constants.NOT_READY;
+    }
+    public int getStatus ()
+    {
+        return status;
+    }
+    public void setStatus(int stt)
+    {
+        status = stt;
+    }
+    public String getUserame()
+    {
+        return username;
     }
 }
