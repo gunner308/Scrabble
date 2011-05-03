@@ -6,9 +6,11 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
 
 public class StartGame {
 	private StartGameFrame startFrame;
@@ -136,14 +138,17 @@ class PlayerNamePanel extends JPanel{
 }
 
 class HostPanel extends JPanel{
-	List<String> gameList = new ArrayList<String>();
+	Box hostBox;
+	Set<String> gameList = new HashSet();
 	
 	public HostPanel()
 	{
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		hostBox = Box.createVerticalBox();
 		gameList.add("thanh");
-		gameList.add("thanh");
+		gameList.add("abc");
+		
 		Iterator it = gameList.iterator();
 	    while(it.hasNext()){
 	    	String value=(String)it.next();
@@ -156,11 +161,12 @@ class HostPanel extends JPanel{
 	    			System.out.println("connect");
 	    		}
 	    	});
-	    	add(b);
+	    	hostBox.add(b);
 	    } 
+	    add(hostBox);
 	}
 	
-	public void updateGameList(List<String> ls)
+	public void updateGameList(Set<String> ls)
 	{
 		gameList = ls;
 	}
