@@ -13,6 +13,23 @@ public class Player {
     {
         username = _username;
         score = 0;
-        status = Constants.READY;
+        status = Constants.NOT_READY;
     }
+
+    public void setStatus(int i)    {
+
+        status = i;
+    }
+
+    public String getUsername() {
+
+        return username;
+    }
+
+    public void addScore(int _score) {
+
+        score += _score;
+    }
+
+    
 }
