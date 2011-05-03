@@ -32,9 +32,9 @@ public class GameClient {
 	private Vector<LetterMove> currentMove;
 
         /* Client Constructor */
-	public GameClient(String host, int port) throws IOException
+	public GameClient(Socket _skt) throws IOException
 	{
-		skt = new Socket(host, port);
+		skt = _skt;
                 turn = 0;
                 
                 timeOut = 0;
@@ -108,7 +108,7 @@ public class GameClient {
         }
 
 
-        public void writeServerMsg(String msg) throws IOException
+        public void sendMessage(String msg) throws IOException
 	{
             try
             {
@@ -141,7 +141,7 @@ public class GameClient {
 	{
             try
             {
-            	writeServerMsg("QUIT_GAME\n");
+            	sendMessage("QUIT" + player.getUsername() + "\0");
 		inFromUser.close();
 		inFromServer.close();
 		outToServer.close();
@@ -150,6 +150,18 @@ public class GameClient {
             }
 	}
 
+        public void resign()    {
+
+            try
+            {
+                sendMessage("SURRENDER" + player.getUsername() + "\0");
+            }
+            catch ( IOException e)  {
+                e.printStackTrace();
+            }
+        }
+
+        /*
         private void readErrorMessage() throws IOException
 	{
 		// error occurs
@@ -157,6 +169,8 @@ public class GameClient {
 		System.out.println(inFromServer.readLine()); // Error code
 		System.out.println(inFromServer.readLine()); // Error message
 	}
+         
+         */
 
         public void preparation() throws IOException   {
 
@@ -165,7 +179,7 @@ public class GameClient {
 
         }
 
-        public void mainGame() throws IOException {
+        public void handleMessage() throws IOException {
 
             String getCommand = "";
 
@@ -204,7 +218,8 @@ public class GameClient {
                 }
                 else if(getCommand.startsWith("MESSAGE"))  {
 
-                    String message = getCommand.split(" ")[1];
+                    String username = getCommand.split(" ")[1];
+                    String message = getCommand.split(" ")[2];
                     /* User Interface display the message */
                 }
                 else if(getCommand.startsWith("SET_SCORE"))  {
@@ -226,7 +241,7 @@ public class GameClient {
         public void play()  throws IOException  {
 
             preparation();
-            mainGame();
+            handleMessage();
             
         }
 
