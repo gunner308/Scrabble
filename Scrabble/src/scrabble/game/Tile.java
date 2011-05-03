@@ -3,17 +3,25 @@ package scrabble.game;
 
 public class Tile {
     char letter;
-    int point;
     
-    public Tile(char l, int p)
+    public Tile(char l)
     {
     	letter = l;
-    	point = p;
+    }
+    
+    public Tile(Tile t)
+    {
+    	letter = t.letter;
     }
     
     // set letter
     public void setLetter(char l)
     {
     	letter = l;
+    }
+    
+    public String toString()
+    {
+    	return "" + letter;
     }
 }
