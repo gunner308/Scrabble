@@ -39,9 +39,10 @@ public class MulticastDiscoverer
         new Thread(this).start();
     }
 
-    public Socket joinGame(InetAddress address)
+    public Socket joinGame(String hostName)
             throws IOException
     {
+        InetAddress address = game_host.get(hostName);
         long time = timeStamp.get(address);
         if (time > 2 * HEARTBEAT_TIME) {
             throw new IOException("Time out!");
@@ -53,7 +54,7 @@ public class MulticastDiscoverer
 
     public Set getGameList()
     {
-        return game_host.entrySet();
+        return game_host.keySet();
     }
 
     public void run()
