@@ -15,16 +15,23 @@ public class Player {
         score = 0;
         status = Constants.NOT_READY;
     }
-    public int getStatus ()
-    {
-        return status;
+
+    public void setStatus(int i)    {
+
+        status = i;
     }
-    public void setStatus(int stt)
-    {
-        status = stt;
-    }
+
+    public String getUsername() {
+
     public String getUserame()
     {
         return username;
     }
+
+    public void addScore(int _score) {
+
+        score += _score;
+    }
+
+    
 }
