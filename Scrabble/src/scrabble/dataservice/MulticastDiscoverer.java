@@ -57,6 +57,25 @@ public class MulticastDiscoverer
         return game_host.keySet();
     }
 
+    String convert(byte[] buf)
+    {
+        String ans ="";
+        for (int i=0; i<buf.length; i++)
+        {
+            ans += (char)buf[i];
+        }
+        return ans;
+    }
+
+    public void finish()
+    {
+        done = true;
+        game_host.clear();
+        timeStamp.clear();
+    }
+
+    
+
     public void run()
     {
         byte[] buf = new byte[1000];
@@ -64,8 +83,8 @@ public class MulticastDiscoverer
         while (!done) {
             try {
                 discoverySocket.receive(recv);
+                String hostName = convert(recv.getData());
                 if (!game_host.containsValue(recv.getAddress())) {
-                    String hostName = new String(recv.getData());
                     if (game_host.containsKey(hostName))
                     {
                         hostName = hostName + System.currentTimeMillis();

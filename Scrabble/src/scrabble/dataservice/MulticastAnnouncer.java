@@ -38,18 +38,10 @@ public class MulticastAnnouncer
 
     name = _name;
   
-    byte[] hbdata = null;
-    try {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      ObjectOutputStream oos = new ObjectOutputStream(baos);
-      oos.writeObject(name);
-      oos.flush();
-      hbdata = baos.toByteArray();
-      oos.close();
-      baos.close();
-    }
-    catch (Exception e) {
-      e.printStackTrace();
+    byte[] hbdata = new byte[name.length()];
+    for (int i=0; i<name.length(); i++)
+    {
+        hbdata[i] = (byte)name.charAt(i);
     }
     
     hbDatagram = new DatagramPacket(hbdata, hbdata.length,

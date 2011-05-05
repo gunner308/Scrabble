@@ -1,7 +1,7 @@
 package scrabble.game;
 
 public class LetterMove {
-	int x, y;
+	public int x, y;
 	Tile tile;
 	
 	public LetterMove(int _x, int _y, Tile t)
@@ -10,5 +10,11 @@ public class LetterMove {
 		y = _y;
 		tile = t;
 	}
+        public LetterMove(int _x, int _y, int tileID)   {
+
+                x = _x;
+                y = _y;
+                tile = new Tile(tileID);
+        }
 
 }
