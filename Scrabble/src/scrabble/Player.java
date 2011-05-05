@@ -7,23 +7,17 @@ public class Player {
     String username;
     int score;
     Vector<Tile> rack;
-    int status;
+    boolean resign;
+    
 
     public Player(String _username)
     {
         username = _username;
         score = 0;
-        status = Constants.NOT_READY;
+        
     }
 
-    public void setStatus(int i)    {
-
-        status = i;
-    }
-
-    public String getUsername() {
-
-    public String getUserame()
+    public String getUsername()
     {
         return username;
     }
@@ -33,5 +27,26 @@ public class Player {
         score += _score;
     }
 
-    
+    public boolean resigned()   {
+
+        return resign;
+    }
+
+    public void setResign(boolean _resign){
+
+        resign = _resign;
+        
+    }
+
+    public void addTile(Tile tile)   {
+
+        rack.add(tile);
+    }
+
+    public Vector<Tile> getRack()   {
+
+        return rack;
+    }
+
+
 }

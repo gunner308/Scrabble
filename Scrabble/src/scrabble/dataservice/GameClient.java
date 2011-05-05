@@ -1,5 +1,6 @@
 package scrabble.dataservice;
 
+
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -28,20 +29,22 @@ public class GameClient {
 	private int turn;
         private Vector<Player> playerList;
         private Player currentPlayer;
-        
 	private Vector<LetterMove> currentMove;
 
         /* Client Constructor */
-	public GameClient(Socket _skt) throws IOException
+	public GameClient(Socket _skt, String playerName) throws IOException
 	{
 		skt = _skt;
                 turn = 0;
-                
+                player = new Player(playerName);
                 timeOut = 0;
 
                 inFromUser = new BufferedReader(new InputStreamReader(System.in));
                 inFromServer = new BufferedReader(new InputStreamReader(skt.getInputStream()));
                 outToServer = new DataOutputStream(skt.getOutputStream());
+
+                String nameMessage = "NAME" + playerName + "\0";
+                sendMessage(nameMessage);
 	}
 
         public void setPlayer(Player _player)    {
@@ -66,6 +69,8 @@ public class GameClient {
             }
             
         }
+
+        
 
         public void setCurrentPlayer(String usernameSentByHost)  {
             
@@ -98,7 +103,7 @@ public class GameClient {
         }
 
         
-        /* Check if in turn or not */
+        /* Check if "my" player is in turn or not */
         public boolean isTurn() {
 
             if ( currentPlayer.getUsername().compareTo(player.getUsername()) == 0 ) return true;
@@ -132,19 +137,75 @@ public class GameClient {
 		return serverMsg;
 	}
 
-        public void startNewTurn() {
+        public void receiveLetter(int tileID) {
+
+            Tile newTile = new Tile(tileID);
+            player.addTile(newTile);
+        }
+
+        
+        
+        public void checkWordResult(String getCommand)   {
 
             
+            if ( getCommand.startsWith("ACCEPT"))   {
+
+            }
+
+            else if ( getCommand.startsWith("REFUSE")) {
+
+            }
+            
         }
+
+        
+
+        public void requestExchange() throws IOException  {
+
+            String requestMsg = "EXCHANGE" + "\0";
+            sendMessage(requestMsg);
+        }
+        /* Move Processing : place letter, remove letter from board, submit Word */
+        public void placeLetter(int tileID, int x, int y) throws IOException {
+
+            LetterMove tempMove = new LetterMove(x, y, tileID);
+            currentMove.add(tempMove);
+            String message = "PLACE" + tileID + x + y + "\0";
+            sendMessage(message);
+        }
+
+        public void removeLetter(int x, int y)  throws IOException  {
+
+            String message = "REMOVE" + x + y + "\0";
+            for (int i =0; i < currentMove.size(); i ++)    {
+
+                if ( currentMove.get(i).x == x && currentMove.get(i).y == y )   {
+
+                    currentMove.remove(i);
+                }
+            }
+            sendMessage(message);
+            
+        }
+
+        public void submitWord() throws IOException   {
+
+            String requestMsg = "SUBMIT" + "\0";
+            sendMessage(requestMsg);
+        }
+
+        /* End move processing */
 
         public void quit()
 	{
             try
             {
             	sendMessage("QUIT" + player.getUsername() + "\0");
+                
 		inFromUser.close();
 		inFromServer.close();
 		outToServer.close();
+                skt.close();
             } catch (IOException e) {
 		System.err.println(e);
             }
@@ -155,6 +216,7 @@ public class GameClient {
             try
             {
                 sendMessage("SURRENDER" + player.getUsername() + "\0");
+                player.setResign(true);
             }
             catch ( IOException e)  {
                 e.printStackTrace();
@@ -174,20 +236,27 @@ public class GameClient {
 
         public void preparation() throws IOException   {
 
-            String playerName = inFromUser.readLine();
-            setPlayer(new Player(playerName));
+            //String playerName = inFromUser.readLine();
+            //setPlayer(new Player(playerName));
+            String getCommand = "";
+            while ( true ) {
+                getCommand = inFromServer.readLine();
+                if ( getCommand.startsWith("START")) {
+                    System.out.println(getCommand);
+                    break;
+                }
+            }
 
         }
 
-        public void handleMessage() throws IOException {
+        public void mainGame() throws IOException {
 
             String getCommand = "";
 
             while ( true )  {
                 getCommand = inFromServer.readLine();
                 if (getCommand.startsWith("TURN")) {
-
-                    turn ++;
+                    //turn ++;
                     String currentPlayerName = getCommand.split(" ")[1];
                     setCurrentPlayer(currentPlayerName);
                     
@@ -222,6 +291,13 @@ public class GameClient {
                     String message = getCommand.split(" ")[2];
                     /* User Interface display the message */
                 }
+                else if(getCommand.startsWith("TILE"))  {
+
+                    String strTileID = getCommand.split(" ")[1];
+                    int tileID = Integer.parseInt(strTileID);
+                    receiveLetter(tileID);
+                    /* User Interface display the message */
+                }
                 else if(getCommand.startsWith("SET_SCORE"))  {
 
                     String wordScore = getCommand.split(" ")[1];
@@ -237,11 +313,21 @@ public class GameClient {
             }
 
         }
+
+        public void startTurn() {
+
+
+        }
+
+        public void endTurn()   {
+
+            
+        }
         
         public void play()  throws IOException  {
 
             preparation();
-            handleMessage();
+            mainGame();
             
         }
 

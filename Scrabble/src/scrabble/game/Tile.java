@@ -1,12 +1,20 @@
 package scrabble.game;
 
+import scrabble.*;
 
 public class Tile {
+
+
     char letter;
+    int point;
+    int id;
     
-    public Tile(char l)
+    public Tile(int _id)
     {
-    	letter = l;
+    	id = _id;
+        letter = Constants.tileLetter[id];
+        point = Constants.tilePoint[id];
+        
     }
     
     public Tile(Tile t)

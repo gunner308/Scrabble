@@ -14,12 +14,12 @@ public class ServerThread extends Thread {
     private BufferedReader inFromClient;
     private DataOutputStream outToClient;
     private Socket skt;
-    private Game game = new Game();
+    private static Game game = new Game();
     private boolean isMaster;
+    private static boolean masterQuit = false;
     private String username;
     private static Vector<Socket> clientSocketList = new Vector<Socket>();
     private static boolean lockWrite;
-    private static Vector <Boolean> closed = new Vector <Boolean>();
 
     public ServerThread(Game _game, Socket _skt) throws IOException
     {
@@ -28,7 +28,7 @@ public class ServerThread extends Thread {
         inFromClient = new BufferedReader(new InputStreamReader(skt.getInputStream()));
         outToClient = new DataOutputStream(skt.getOutputStream());
     }
-    
+
     public void outToAll (String s, int exception)
     {
         Socket dstSocket;
@@ -44,7 +44,7 @@ public class ServerThread extends Thread {
                     out.writeBytes(s);
                 }
                 catch (IOException ioe){
-                    closed.set(i, true);
+
                 }
                 lockWrite = false;
             }
@@ -89,7 +89,7 @@ public class ServerThread extends Thread {
     }
     public void resignHandler()
     {
-        game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setStatus(Constants.RESIGN);
+        game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setResign(true);
         outToAll ("SURRENDER" + username + '\0', clientSocketList.indexOf(skt));
         //fixTurn (j);
     }
@@ -117,30 +117,17 @@ public class ServerThread extends Thread {
                     if (!isMaster)
                     {
                         quitHandler();
-                        //game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setStatus(Constants.RESIGN);
-                        //resignHandler();
                         break;
                     }
                     else
                     {
                         //MASTER QUIT
+                        masterQuit = true;
+                        break;
                     }
                 }
                 else
                 {
-                    if (line.startsWith("READY"))
-                    {
-                        //timing = System.currentTimeMillis();
-                        game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setStatus(Constants.READY);
-                        outToAll("READY " + username,-1);
-                    }
-                    else if(line.startsWith("NOTREADY"))
-                    {
-                        //timing = System.currentTimeMillis();
-                        outToAll("NOTREADY " + username, -1);
-                         game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setStatus(Constants.NOT_READY);
-                    }
-
                     if (line.startsWith("START"))
                     {
                         //timing = System.currentTimeMillis();
@@ -177,10 +164,10 @@ public class ServerThread extends Thread {
         String line;
         while (true)
         {
-            if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).getStatus() == Constants.RESIGN) break;
+            if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true) break;
             if (clientSocketList.indexOf(skt) + 1 == game.getTurn())
             {
-                outToAll ("TURN" + game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).getUserame() + '\0', -1);
+                outToAll ("TURN" + game.getPlayerList().elementAt(game.getTurn()-1).getUsername() + '\0', -1);
             }
             if (inFromClient.ready())
             {
@@ -207,11 +194,52 @@ public class ServerThread extends Thread {
                 {
 
                 }
+                if (line.startsWith("PASS"))
+                {
+
+                }
                 if (line.startsWith("QUIT"))
                 {
-                    quitHandler();
+                    if (!isMaster)
+                    {
+                        quitHandler();
+                        break;
+                    }
+                    else
+                    {
+                        masterQuit = true;
+                        break;
+                    }
                 }
             }
         }
+    }
+    public void run()
+    {
+        try
+        {
+            while (true)
+            {
+                welcome();
+                while (!masterQuit)
+                {
+                    controlInRoom();
+                    //if (quited) break;
+                    controlInPlay();
+                    //if (quited) break;
+                }
+                if (!masterQuit) break;
+            }
+        }
+        /*catch (SocketException se){
+            System.out.println("SocketException!!!");
+            quit();
+        }*/
+        catch (IOException ioe)
+        {
+            //System.out.println(ioe);
+            //quit();
+    	}
+
     }
 }
