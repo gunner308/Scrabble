@@ -51,15 +51,26 @@ public class MulticastAnnouncer
     new Thread(this).start();
   }
 
+  public void finish()
+  {
+      done = true;
+  }
+
+  public void reset()
+  {
+      done = false;
+      this.run();
+  }
+
   public void run() {
     while (!done) {
-      try {
-        if (announcer) {
-          discoverySocket.send(hbDatagram);
-        }
+      try
+      {
+        discoverySocket.send(hbDatagram);
         Thread.sleep(HEARTBEAT_TIME);
       }
-      catch (Exception e) {
+      catch (Exception e)
+      {
         e.printStackTrace();
       }
     }

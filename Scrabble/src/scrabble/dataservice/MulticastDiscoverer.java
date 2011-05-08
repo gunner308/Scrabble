@@ -74,7 +74,11 @@ public class MulticastDiscoverer
         timeStamp.clear();
     }
 
-    
+    public void reset()
+    {
+        done = false;
+        this.run();
+    }
 
     public void run()
     {
