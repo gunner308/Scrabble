@@ -165,16 +165,13 @@ public class ServerThread extends Thread {
         while (true)
         {
             if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true) break;
-            if (clientSocketList.indexOf(skt) + 1 == game.getTurn())
-            {
-                outToAll ("TURN" + game.getPlayerList().elementAt(game.getTurn()-1).getUsername() + '\0', -1);
-            }
+            outToAll ("TURN" + game.nextTurn() + '\0', -1);
             if (inFromClient.ready())
             {
                 line = inFromClient.readLine();
                 if (line.startsWith("PLACE"))
                 {
-                    if (game.validateMove())
+                    game.updateMove(letterMove);
                     outToAll (line + '\0', clientSocketList.indexOf(skt));
                 }
                 if (line.startsWith("REMOVE"))
@@ -192,11 +189,15 @@ public class ServerThread extends Thread {
                 }
                 if (line.startsWith("EXCHANGE"))
                 {
-
+                    Vector <Tile> exchange = game.exchangeRack();
+                    for (int i=0; i< exchange.size(); i++)
+                    {
+                        outToClient.writeBytes("TILE" + exchange.elementAt(i).getID() +'\0');
+                    }
                 }
                 if (line.startsWith("PASS"))
                 {
-
+                    outToAll("TURN" + game.nextTurn() + '\0', -1);
                 }
                 if (line.startsWith("QUIT"))
                 {

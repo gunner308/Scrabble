@@ -5,29 +5,26 @@ import java.lang.Math;
 import scrabble.Constants;
 import sun.awt.VerticalBagLayout;
 
-  class Position{
-        public int x;
-        public int y;
-        public Position (int _x, int _y)
-        {
-            x = _x;
-            y = _y;
-        }
-
-      public Position (Position pos)
-      {
-          x = pos.x;
-          y = pos.y;
-      }
-
+class Position{
+    public int x;
+    public int y;
+    public Position (int _x, int _y)
+    {
+        x = _x;
+        y = _y;
     }
+    public Position (Position pos)
+    {
+        x = pos.x;
+        y = pos.y;
+    }
+}
 
 public class Board {
     private Square board[][];
     private static final int size = 15;
     private Vector <String> wordsToCheck;
     private Vector <Position> initPos;
-   
     public Board()
     {
             board = new Square[size][size];
@@ -90,12 +87,9 @@ public class Board {
         return max;
     }
 
-    public int isLine(Vector<LetterMove> currentMove)
+    private int isOneLine(Vector<LetterMove> currentMove)
     {
-        //move has only 1 tile
-        if (currentMove.size() == 1) return 1;
-        //move has 2 tiles
-        else if (currentMove.size() == 2)
+        if (currentMove.size() == 2)
         {
             if (currentMove.elementAt(0).x == currentMove.elementAt(1).x 
                 && Math.abs(currentMove.elementAt(0).y - currentMove.elementAt(1).y) ==1 ) 
@@ -309,5 +303,109 @@ public class Board {
     {
         if (board[p.x][p.y].isOccupied()) return false;
         return true;
+    }
+    public boolean checkConnected (Vector <LetterMove> m)
+    {
+        if (m.size() == 1)
+        {
+            if (m.elementAt(0).x > 0)
+            {
+                if (!checkNewLetter(new Position(m.elementAt(0).x-1, m.elementAt(0).y))) return true;
+            }
+            if (m.elementAt(0).x < 14)
+            {
+                if (!checkNewLetter(new Position(m.elementAt(0).x+1, m.elementAt(0).y))) return true;
+            }
+            if (m.elementAt(0).y > 0)
+            {
+                if (!checkNewLetter(new Position(m.elementAt(0).x, m.elementAt(0).y-1))) return true;
+            }
+            if (m.elementAt(0).y < 14)
+            {
+                if (!checkNewLetter(new Position(m.elementAt(0).x, m.elementAt(0).y+1))) return true;
+            }
+        }
+        else
+        {
+            if (isOneLine(m) == 1)
+            {
+                int start, end;
+                if (findMin(m) > 0) start = findMin(m)-1;
+                else start = 0;
+                if (findMax(m) > 0) end = findMax(m)-1;
+                else end = size-1;
+                while (start <=end)
+                {
+                    if (!checkNewLetter(new Position(m.elementAt(0).x, start))) return true;
+                    start ++;
+                }
+            }
+            else
+            {
+                int start, end;
+                if (findMin(m) > 0) start = findMin(m)-1;
+                else start = 0;
+                if (findMax(m) > 0) end = findMax(m)-1;
+                else end = size-1;
+                while (start <=end)
+                {
+                    if (!checkNewLetter(new Position(start, m.elementAt(0).y))) return true;
+                    start ++;
+                }
+            }
+        }
+        return false;
+    }
+    public int isLine (Vector <LetterMove> currentMove)
+    {
+        /*//move has only 1 tile
+        if (currentMove.size() == 1) return 1;
+        //move has 2 tiles
+        else if (currentMove.size() == 2)
+        {
+            if (currentMove.elementAt(0).x == currentMove.elementAt(1).x 
+                && Math.abs(currentMove.elementAt(0).y - currentMove.elementAt(1).y) ==1 ) 
+            {
+                return 1;
+            }
+            if (currentMove.elementAt(0).y == currentMove.elementAt(1).y
+                && Math.abs(currentMove.elementAt(0).x - currentMove.elementAt(1).x) ==1)
+            {
+                return 2;
+            }
+            return 0;
+        }
+        //more than 2 tiles in a move
+        if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
+        {
+            for (int i=2; i<currentMove.size(); i++)
+            {
+                if (currentMove.elementAt(i).x != currentMove.elementAt(0).x) return 0;
+            }
+            for (int i = findMin(currentMove); i<=findMax(currentMove); i++)
+            {
+                if (!board [currentMove.elementAt(0).x][i].isOccupied()) return 0;
+            }
+            return 1;
+        }
+        else if (currentMove.elementAt(0).y == currentMove.elementAt(1).y)
+        {
+            for (int i=2; i<currentMove.size(); i++)
+            {
+                if (currentMove.elementAt(i).y != currentMove.elementAt(0).y) return 0;
+            }
+            for (int i = findMin(currentMove); i<=findMax(currentMove); i++)
+            {
+                if (!board [i][currentMove.elementAt(0).y].isOccupied()) return 0;
+            }
+            return 2;
+        }
+        else return 0;*/
+        if (isOneLine(currentMove) == 0) return 0;
+        else
+        {
+            if (checkConnected(currentMove)) return isOneLine(currentMove);
+            else return 0;
+        }
     }
 }

@@ -32,4 +32,8 @@ public class Tile {
     {
     	return "" + letter;
     }
+    public int getID ()
+    {
+        return id;
+    }
 }
