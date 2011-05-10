@@ -44,6 +44,7 @@ public class Board {
             board[move.elementAt(i).x][move.elementAt(i).y].tile = move.elementAt(i).tile;
         }
     }
+    //find the min X if word is vertical, min Y if word is horizontal
     private int findMin (Vector <LetterMove> currentMove)
     {
         int min = 0;
@@ -65,6 +66,7 @@ public class Board {
         }
         return min;
     }
+    //find max min X if word is vertical, max Y if word is horizontal
     private int findMax (Vector <LetterMove> currentMove)
     {
         int max = 0;
@@ -86,7 +88,7 @@ public class Board {
         }
         return max;
     }
-
+    //check if the NEW tiles is in one row or one column
     private int isOneLine(Vector<LetterMove> currentMove)
     {
         if (currentMove.size() == 2)
@@ -94,14 +96,14 @@ public class Board {
             if (currentMove.elementAt(0).x == currentMove.elementAt(1).x 
                 && Math.abs(currentMove.elementAt(0).y - currentMove.elementAt(1).y) ==1 ) 
             {
-                return 1;
+                return 1;//horizontal
             }
             if (currentMove.elementAt(0).y == currentMove.elementAt(1).y
                 && Math.abs(currentMove.elementAt(0).x - currentMove.elementAt(1).x) ==1)
             {
-                return 2;
+                return 2;//vertical
             }
-            return 0;
+            return 0;//not one line
         }
         //more than 2 tiles in a move
         if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
@@ -130,7 +132,7 @@ public class Board {
         }
         else return 0;
     }
-
+    //make the word correspoding to the main direction 
     private String makeMainWord (Vector<LetterMove> currentMove)
     {
         String s = "";
@@ -225,9 +227,11 @@ public class Board {
         }
         return s;
     }
+    //add the secondary word to the vector
     private void makeSecondaryWord (Vector<LetterMove> m)
     {
         String s="";
+        //vertical
         if (isLine(m) == 1)
         {
             for (int i=0; i<m.size(); i++)
@@ -258,6 +262,7 @@ public class Board {
             }
             wordsToCheck.add(s);
         }
+        //horizontal
         else if (isLine(m) == 2)
         {
             for (int i=0; i<m.size(); i++)
@@ -304,6 +309,7 @@ public class Board {
         if (board[p.x][p.y].isOccupied()) return false;
         return true;
     }
+    //check if the new tiles connect with old tiles
     public boolean checkConnected (Vector <LetterMove> m)
     {
         if (m.size() == 1)
@@ -358,54 +364,11 @@ public class Board {
     }
     public int isLine (Vector <LetterMove> currentMove)
     {
-        /*//move has only 1 tile
-        if (currentMove.size() == 1) return 1;
-        //move has 2 tiles
-        else if (currentMove.size() == 2)
-        {
-            if (currentMove.elementAt(0).x == currentMove.elementAt(1).x 
-                && Math.abs(currentMove.elementAt(0).y - currentMove.elementAt(1).y) ==1 ) 
-            {
-                return 1;
-            }
-            if (currentMove.elementAt(0).y == currentMove.elementAt(1).y
-                && Math.abs(currentMove.elementAt(0).x - currentMove.elementAt(1).x) ==1)
-            {
-                return 2;
-            }
-            return 0;
-        }
-        //more than 2 tiles in a move
-        if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
-        {
-            for (int i=2; i<currentMove.size(); i++)
-            {
-                if (currentMove.elementAt(i).x != currentMove.elementAt(0).x) return 0;
-            }
-            for (int i = findMin(currentMove); i<=findMax(currentMove); i++)
-            {
-                if (!board [currentMove.elementAt(0).x][i].isOccupied()) return 0;
-            }
-            return 1;
-        }
-        else if (currentMove.elementAt(0).y == currentMove.elementAt(1).y)
-        {
-            for (int i=2; i<currentMove.size(); i++)
-            {
-                if (currentMove.elementAt(i).y != currentMove.elementAt(0).y) return 0;
-            }
-            for (int i = findMin(currentMove); i<=findMax(currentMove); i++)
-            {
-                if (!board [i][currentMove.elementAt(0).y].isOccupied()) return 0;
-            }
-            return 2;
-        }
-        else return 0;*/
         if (isOneLine(currentMove) == 0) return 0;
         else
         {
-            if (checkConnected(currentMove)) return isOneLine(currentMove);
-            else return 0;
+            if (checkConnected(currentMove)) return isOneLine(currentMove);//if connect
+            else return 0;//not connect
         }
     }
 }

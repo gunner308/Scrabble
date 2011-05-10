@@ -9,6 +9,7 @@ import scrabble.game.*;
 import java.util.*;
 import scrabble.Constants;
 import scrabble.Player;
+import scrabble.game.LetterMove;
 
 public class ServerThread extends Thread {
     private BufferedReader inFromClient;
@@ -171,6 +172,8 @@ public class ServerThread extends Thread {
                 line = inFromClient.readLine();
                 if (line.startsWith("PLACE"))
                 {
+                    String []s = line.split(" ");
+                    LetterMove letterMove = new LetterMove (s[1].charAt(0), s[2], s[3]);
                     game.updateMove(letterMove);
                     outToAll (line + '\0', clientSocketList.indexOf(skt));
                 }
@@ -212,6 +215,11 @@ public class ServerThread extends Thread {
                         break;
                     }
                 }
+            }
+            Vector <Tile> tiles = game.getNewTiles();
+            for (int i=0; i< tiles.size(); i++)
+            {
+                outToClient.writeBytes("TILE" + tiles.elementAt(i).getID() +'\0');
             }
         }
     }
