@@ -74,6 +74,20 @@ public class Game {
         return playerList;
     }
 
+    public Vector<Tile> getNewTiles()
+    {
+        int size = playerList.elementAt(turn).getRack().size();
+        bag.fillRack(playerList.elementAt(turn).getRack());
+        Vector<Tile> newTiles = new Vector();
+        Vector<Tile> rack = playerList.elementAt(turn).getRack();
+        for (int i=size; i<rack.size(); i++)
+        {
+            newTiles.add(rack.elementAt(i));
+        }
+
+        return newTiles;
+    }
+
     public String nextTurn ()
     {
         board.update(currentMove);
@@ -145,5 +159,16 @@ public class Game {
             point += marking(words.elementAt(i), startPos.elementAt(0), 3-dir, 0);
         }
     	return point;
+    }
+
+    public Vector<Tile> exchangeRack()
+    {
+        bag.exchangeRack(playerList.elementAt(turn).getRack());
+        return playerList.elementAt(turn).getRack();
+    }
+
+    public void updateMove(LetterMove move)
+    {
+        currentMove.add(move);
     }
 }
