@@ -19,7 +19,10 @@ public class Bag {
     public Bag()
     {
     	for (int i = 0; i < bag.length; i++){
-    		tileList.add(new Tile(bag[i]));
+                if ( bag[i] == ' ' )    {
+                    tileList.add(new Tile(26));
+                }
+                else tileList.add(new Tile(bag[i] - 'A'));
     	}
     }
     
