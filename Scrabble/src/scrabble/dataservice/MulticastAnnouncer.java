@@ -9,7 +9,7 @@ import java.net.*;
 import java.util.*;
 import java.util.Map.*;
 
-public class MulticastAnnouncer
+public class MulticastAnnouncer extends Thread
     implements Runnable {
   InetAddress discoveryGroup;
   MulticastSocket discoverySocket;
@@ -62,6 +62,7 @@ public class MulticastAnnouncer
       this.run();
   }
 
+  @Override
   public void run() {
     while (!done) {
       try

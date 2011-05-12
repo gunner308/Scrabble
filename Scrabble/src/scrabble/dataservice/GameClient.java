@@ -22,6 +22,7 @@ import java.io.InputStreamReader;
 
 
 import scrabble.game.*;
+import scrabble.gui.MainFrame;
 import scrabble.*;
 
 public class GameClient {
@@ -44,24 +45,28 @@ public class GameClient {
 	private Vector<LetterMove> currentMove;
         private boolean isMaster;
 
-        private InGameScreen GUI;
+        private MainFrame GUI;
 
         /* Client Constructor */
-	public GameClient(Socket _skt, String playerName, boolean _isMaster, InGameScreen _GUI ) throws IOException
+	public GameClient(Socket _skt, String playerName, boolean _isMaster, MainFrame _GUI ) throws IOException
 	{
 		skt = _skt;
-                turn = 0;
-                player = new Player(playerName);
-                GUI = _GUI;
-                //timeOut = 0;
-                setMaster(isMaster);
-                inFromUser = new BufferedReader(new InputStreamReader(System.in));
-                inFromServer = new BufferedReader(new InputStreamReader(skt.getInputStream()));
-                outToServer = new DataOutputStream(skt.getOutputStream());
+        turn = 0;
+        player = new Player(playerName);
+        board = new Board();
+        playerList = new Vector<Player> ();
+        GUI = _GUI;
 
-                String nameMessage = "NAME" + playerName + "\n";
-                sendMessage(nameMessage);
-        }
+        //timeOut = 0;
+        setMaster(_isMaster);
+        inFromUser = new BufferedReader(new InputStreamReader(System.in));
+        inFromServer = new BufferedReader(new InputStreamReader(skt.getInputStream()));
+        outToServer = new DataOutputStream(skt.getOutputStream());
+
+        String nameMessage = "NAME" + playerName + "\n";
+        sendMessage(nameMessage);
+        GUI.setInGameScreen(this);
+}
         
         
 
@@ -303,7 +308,7 @@ public class GameClient {
                 for ( int j = 0; j < size; j ++)    {
 
                     Square thisSquare = board.getSquare(i, j);
-                    if ( thisSquare != null ) tileOnBoard ++;
+                    if ( thisSquare.getTile() != null ) tileOnBoard ++;
                 }
             }
             int tileOnHands = 0;
@@ -312,7 +317,12 @@ public class GameClient {
                 tileOnHands += playerList.get(i).getRack().size();
                 
             }
+            System.out.println(tileOnBoard);
+            System.out.println(tileOnHands);
             int tileOnBag = 100 - tileOnBoard - tileOnHands;
+            if (tileOnBag < 0){
+            	tileOnBag = 0;
+            }
             return tileOnBag;
             
         }
@@ -416,7 +426,6 @@ public class GameClient {
                     String username = getCommand.split(" ")[1];
                     GUI.displayMessage("Player " + username + " has passed his turn");
                     currentMove.clear();
-                    GUI.passTurn();
                     /* User Interface display the score accordingly  */
                     // GUI.repaint();
                 }
@@ -440,6 +449,11 @@ public class GameClient {
         public void endTurn()   {
 
             
+        }
+        
+        public Player getPlayer()
+        {
+        	return player;
         }
         
         public void play()  throws IOException  {

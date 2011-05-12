@@ -5,6 +5,8 @@ import java.net.*;
 import java.util.*;
 import java.util.Map.*;
 
+import scrabble.gui.inGameComponents.ChatPanel;
+
 public class ChatClient
     extends Thread {
   InetAddress chatGroup;
@@ -16,7 +18,7 @@ public class ChatClient
   private static final int CHAT_PORT = 10987;
   String name;
   private int length;
-  ChatPanel cp;
+  private ChatPanel cp;
   
   public ChatClient(String _name, int _length, ChatPanel _cp) {
     try {

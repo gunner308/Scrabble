@@ -7,7 +7,7 @@ import scrabble.Player;
 public class Game {
     private final int size = 10;
     private Board board;
-    private Dictionary dictionary;
+    private MyDictionary dictionary;
     private int turn;
     private Bag bag;
     private Vector<Player> playerList;
@@ -20,7 +20,7 @@ public class Game {
     public Game()
     {
     	board = new Board();
-    	dictionary = new Dictionary();
+    	dictionary = new MyDictionary();
     	bag = new Bag();
         isStarted = false;
         turn = -1;

@@ -28,6 +28,12 @@ public class Tile {
     	letter = l;
     }
     
+    // get letter of the tile
+    public char getLetter()
+    {
+    	return letter;
+    }
+    
     public String toString()
     {
     	return "" + letter;
