@@ -27,4 +27,15 @@ public class Square {
     {
     	return (tile != null);
     }
+    
+    // get type of the square
+    public int getType()
+    {
+    	return type;
+    }
+    
+    public Tile getTile()
+    {
+    	return tile;
+    }
 }

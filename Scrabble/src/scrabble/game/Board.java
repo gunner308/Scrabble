@@ -3,7 +3,6 @@ package scrabble.game;
 import java.util.Vector;
 import java.lang.Math;
 import scrabble.Constants;
-import sun.awt.VerticalBagLayout;
 
 class Position{
     public int x;
@@ -25,15 +24,37 @@ public class Board {
     private static final int size = 15;
     private Vector <String> wordsToCheck;
     private Vector <Position> initPos;
+    private static final int BOARD[][] = 
+    	{{4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4,},
+    	 {0, 3, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 3, 0,},
+    	 {0, 0, 3, 0, 0, 0, 1, 0, 1, 0, 0, 0, 3, 0, 0,},
+    	 {1, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 1,},
+    	 {0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0,},
+    	 {0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0,},
+    	 {0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0,},
+    	 {4, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 4,},
+    	 {0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0,},
+    	 {0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0,},
+    	 {0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0,},
+    	 {1, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 1,},
+    	 {0, 0, 3, 0, 0, 0, 1, 0, 1, 0, 0, 0, 3, 0, 0,},
+    	 {0, 3, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 3, 0,},
+    	 {4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4,}
+    	};
+    
+    
     public Board()
     {
-            board = new Square[size][size];
+    	board = new Square[size][size];
+    	for (int i = 0; i < size; i++)
+    		for (int j = 0; j < size; j++)
+    			board[i][j] = new Square(BOARD[i][j]);
     }
 
     // get a square
     public Square getSquare(int i, int j)
     {
-            return board[i][j];
+    	return board[i][j];
     }
 
     // update a move to the board

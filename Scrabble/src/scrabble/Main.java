@@ -8,6 +8,7 @@ import scrabble.gui.*;
 public class Main {
 	public static void main(String args[])
 	{
+		MainFrame f = new MainFrame();
 		//StartGame startGame = new StartGame();
 //		Bag b = new Bag();
 //		System.out.println(b.getNumTileLeft());
@@ -22,8 +23,6 @@ public class Main {
 //		for (int i = 0; i < rack.size(); i++){
 //			System.out.println(rack.elementAt(i));
 //		}
-		Dictionary d = new Dictionary();
-		System.out.println(d.checkWord("a"));
 	}
 
 }

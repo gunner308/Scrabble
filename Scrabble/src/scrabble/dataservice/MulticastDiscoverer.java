@@ -9,7 +9,7 @@ import java.net.*;
 import java.util.*;
 import java.util.Map.*;
 
-public class MulticastDiscoverer
+public class MulticastDiscoverer extends Thread
         implements Runnable {
 
     InetAddress discoveryGroup;
@@ -44,9 +44,9 @@ public class MulticastDiscoverer
     {
         InetAddress address = game_host.get(hostName);
         long time = timeStamp.get(address);
-        if (time > 2 * HEARTBEAT_TIME) {
+        /*if (time > 2 * HEARTBEAT_TIME) {
             throw new IOException("Time out!");
-        }
+        }*/
         Socket tcpSocket = new Socket();
         tcpSocket.connect(new InetSocketAddress(address, TCP_PORT));
         return tcpSocket;
@@ -62,6 +62,8 @@ public class MulticastDiscoverer
         String ans ="";
         for (int i=0; i<buf.length; i++)
         {
+        	if (buf[i] == 0)
+        		break;
             ans += (char)buf[i];
         }
         return ans;
@@ -80,6 +82,7 @@ public class MulticastDiscoverer
         this.run();
     }
 
+    @Override
     public void run()
     {
         byte[] buf = new byte[1000];
