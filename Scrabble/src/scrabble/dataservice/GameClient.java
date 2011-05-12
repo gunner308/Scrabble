@@ -26,8 +26,9 @@ import scrabble.*;
 
 public class GameClient {
 
-    public static final String host = "127.0.0.1";
+        public static final String host = "127.0.0.1";
 	public static final int port = 10003;
+        public static final int size = 15;
 
         //public int timeOut;
 
@@ -294,6 +295,28 @@ public class GameClient {
             
         }
 
+        public int countTile()  {
+
+            int tileOnBoard = 0;
+            for (int i = 0; i < size; i ++) {
+
+                for ( int j = 0; j < size; j ++)    {
+
+                    Square thisSquare = board.getSquare(i, j);
+                    if ( thisSquare != null ) tileOnBoard ++;
+                }
+            }
+            int tileOnHands = 0;
+            for ( int i = 0; i < playerList.size(); i ++ )  {
+
+                tileOnHands += playerList.get(i).getRack().size();
+                
+            }
+            int tileOnBag = 100 - tileOnBoard - tileOnHands;
+            return tileOnBag;
+            
+        }
+
         public void endGame()   {
             GUI.endGame();
         }
@@ -316,9 +339,25 @@ public class GameClient {
             String getCommand = "";
             while ( true ) {
                 getCommand = inFromServer.readLine();
+
                 if ( getCommand.startsWith("START")) {
-                    System.out.println(getCommand);
+
+                    GUI.startGame();
                     break;
+                }
+                else if(getCommand.startsWith("JOIN"))  {
+
+                    String playerName = getCommand.split(" ")[1];
+                    addPlayerToList(new Player(playerName));
+                    // GUI display joining player
+                    GUI.redisplay();
+                }
+                else if(getCommand.startsWith("LEAVE"))  {
+
+                    String playerName = getCommand.split(" ")[1];
+                    removePlayerFromList(playerName);
+                    // GUI display removing player
+                    GUI.redisplay();
                 }
             }
 
@@ -338,20 +377,7 @@ public class GameClient {
                     GUI.redisplay();
                     
                 }
-                else if(getCommand.startsWith("JOIN"))  {
-
-                    String playerName = getCommand.split(" ")[1];
-                    addPlayerToList(new Player(playerName));
-                    // GUI display joining player
-                    GUI.redisplay();
-                }
-                else if(getCommand.startsWith("LEAVE"))  {
-
-                    String playerName = getCommand.split(" ")[1];
-                    removePlayerFromList(playerName);
-                    // GUI display removing player
-                    GUI.redisplay();
-                }
+                
                 else if(getCommand.startsWith("PLACE"))  {
                    
                     int tileID = Integer.parseInt(getCommand.split(" ")[1]);
