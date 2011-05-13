@@ -381,6 +381,7 @@ public class Board {
                         !board[m.elementAt(i).x][it-1].isOccupied()) || it==0) 
                     {
                         Position p = new Position (m.elementAt(i).x, it);
+                        initPos.clear();
                         initPos.add(p);
                     }
                     it--;
@@ -401,6 +402,7 @@ public class Board {
     }
     public Vector<String> getWords (Vector <LetterMove> currentMove)
     {
+        wordsToCheck.clear();
         wordsToCheck.add(makeMainWord(currentMove)); 
         makeSecondaryWord(currentMove);
         return wordsToCheck;
