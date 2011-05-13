@@ -25,7 +25,7 @@ import scrabble.game.*;
 import scrabble.gui.MainFrame;
 import scrabble.*;
 
-public class GameClient {
+public class GameClient extends Thread {
 
         public static final String host = "127.0.0.1";
 	public static final int port = 10003;
@@ -50,23 +50,23 @@ public class GameClient {
         /* Client Constructor */
 	public GameClient(Socket _skt, String playerName, boolean _isMaster, MainFrame _GUI ) throws IOException
 	{
-		skt = _skt;
-        turn = 0;
-        player = new Player(playerName);
-        board = new Board();
-        playerList = new Vector<Player> ();
-        GUI = _GUI;
+            skt = _skt;
+            turn = 0;
+            player = new Player(playerName);
+            board = new Board();
+            playerList = new Vector<Player> ();
+            GUI = _GUI;
 
-        //timeOut = 0;
-        setMaster(_isMaster);
-        inFromUser = new BufferedReader(new InputStreamReader(System.in));
-        inFromServer = new BufferedReader(new InputStreamReader(skt.getInputStream()));
-        outToServer = new DataOutputStream(skt.getOutputStream());
+            //timeOut = 0;
+            setMaster(_isMaster);
+            inFromUser = new BufferedReader(new InputStreamReader(System.in));
+            inFromServer = new BufferedReader(new InputStreamReader(skt.getInputStream()));
+            outToServer = new DataOutputStream(skt.getOutputStream());
 
-        String nameMessage = "NAME" + playerName + "\n";
-        sendMessage(nameMessage);
-        GUI.setInGameScreen(this);
-}
+            String nameMessage = "NAME" + playerName + "\n";
+            sendMessage(nameMessage);
+            GUI.setInGameScreen(this);
+        }
         
         
 
@@ -261,8 +261,8 @@ public class GameClient {
         public boolean canStart()   {
 
             if ( isMaster() && playerList.size() >= 2 )
-            return false;
-            else return true;
+            return true;
+            else return false;
         }
 
         public void callStartGame() throws IOException {
@@ -308,7 +308,7 @@ public class GameClient {
                 for ( int j = 0; j < size; j ++)    {
 
                     Square thisSquare = board.getSquare(i, j);
-                    if ( thisSquare.getTile() != null ) tileOnBoard ++;
+                    if ( thisSquare.isOccupied() ) tileOnBoard ++;
                 }
             }
             int tileOnHands = 0;
@@ -331,43 +331,55 @@ public class GameClient {
             GUI.endGame();
         }
 
-        /*
-        private void readErrorMessage() throws IOException
-	{
-		// error occurs
-		System.out.println(inFromServer.readLine()); // "FAIL" message
-		System.out.println(inFromServer.readLine()); // Error code
-		System.out.println(inFromServer.readLine()); // Error message
-	}
-         
-         */
+        public void closeSocket() throws IOException   {
 
-        public void preparation() throws IOException   {
+            inFromUser.close();
+            inFromServer.close();
+            outToServer.close();
+            skt.close();
+            
+        }
+
+        public boolean preparation() throws IOException   {
 
             //String playerName = inFromUser.readLine();
             //setPlayer(new Player(playerName));
             String getCommand = "";
             while ( true ) {
-                getCommand = inFromServer.readLine();
+                
+                try {
+                    getCommand = inFromServer.readLine();
 
-                if ( getCommand.startsWith("START")) {
+                    if ( getCommand.startsWith("START")) {
 
-                    GUI.startGame();
-                    break;
+                        GUI.startGame();
+                        return true;
+                    }
+                    else if(getCommand.startsWith("JOIN"))  {
+
+                        String playerName = getCommand.split(" ")[1];
+                        addPlayerToList(new Player(playerName));
+                        // GUI display joining player
+                        GUI.redisplay();
+                    }
+                    else if(getCommand.startsWith("LEAVE"))  {
+
+                        String playerName = getCommand.split(" ")[1];
+                        removePlayerFromList(playerName);
+                        // GUI display removing player
+                        GUI.redisplay();
+                    }
+                    else if(getCommand.startsWith("ERROR"))  {
+
+                        String errorMessage = "Room is already full";
+                        GUI.displayMessage(errorMessage);
+                        this.closeSocket();
+                        return false;
+                    }
+                    
                 }
-                else if(getCommand.startsWith("JOIN"))  {
-
-                    String playerName = getCommand.split(" ")[1];
-                    addPlayerToList(new Player(playerName));
-                    // GUI display joining player
-                    GUI.redisplay();
-                }
-                else if(getCommand.startsWith("LEAVE"))  {
-
-                    String playerName = getCommand.split(" ")[1];
-                    removePlayerFromList(playerName);
-                    // GUI display removing player
-                    GUI.redisplay();
+                catch (Exception e) {
+                    e.printStackTrace();;
                 }
             }
 
@@ -378,77 +390,84 @@ public class GameClient {
             String getCommand = "";
 
             while ( true )  {
-                getCommand = inFromServer.readLine();
-                if (getCommand.startsWith("TURN")) {
-                    //turn ++;
-                    String currentPlayerName = getCommand.split(" ")[1];
-                    setCurrentPlayer(currentPlayerName);
+                try {
+                    getCommand = inFromServer.readLine();
+                    if (getCommand.startsWith("TURN")) {
+                        //turn ++;
+                        String currentPlayerName = getCommand.split(" ")[1];
+                        setCurrentPlayer(currentPlayerName);
+                        GUI.redisplay();
+                        GUI.startTurn(currentPlayerName);
+                    }
 
-                    GUI.redisplay();
-                    
-                }
-                
-                else if(getCommand.startsWith("PLACE"))  {
-                   
-                    int tileID = Integer.parseInt(getCommand.split(" ")[1]);
-                    int x = Integer.parseInt(getCommand.split(" ")[2]);
-                    int y = Integer.parseInt(getCommand.split(" ")[3]);
-                    placeLetter(tileID, x, y);
-                }
-                else if(getCommand.startsWith("REMOVE"))  {
-                    int x = Integer.parseInt(getCommand.split(" ")[1]);
-                    int y = Integer.parseInt(getCommand.split(" ")[2]);
-                    removeLetter(x, y);
-                }
-                else if(getCommand.startsWith("MESSAGE"))  {
+                    else if(getCommand.startsWith("PLACE"))  {
 
-                    String username = getCommand.split(" ")[1];
-                    String message = getCommand.split(" ")[2];
-                    /* User Interface display the message */
+                        int tileID = Integer.parseInt(getCommand.split(" ")[1]);
+                        int x = Integer.parseInt(getCommand.split(" ")[2]);
+                        int y = Integer.parseInt(getCommand.split(" ")[3]);
+                        placeLetter(tileID, x, y);
+                    }
+                    else if(getCommand.startsWith("REMOVE"))  {
+                        int x = Integer.parseInt(getCommand.split(" ")[1]);
+                        int y = Integer.parseInt(getCommand.split(" ")[2]);
+                        removeLetter(x, y);
+                    }
+                    else if(getCommand.startsWith("MESSAGE"))  {
+
+                        String username = getCommand.split(" ")[1];
+                        String message = getCommand.split(" ")[2];
+                        /* User Interface display the message */
+                    }
+                    else if(getCommand.startsWith("TILE"))  {
+
+                        String strTileID = getCommand.split(" ")[1];
+                        int tileID = Integer.parseInt(strTileID);
+                        receiveLetter(tileID);
+                        /* User Interface display the message */
+                    }
+                    else if(getCommand.startsWith("SET_SCORE"))  {
+
+                        String wordScore = getCommand.split(" ")[1];
+                        int score = Integer.parseInt(wordScore);
+                        currentPlayer.addScore(score);
+                        /* User Interface display the score accordingly  */
+                        GUI.redisplay();
+                    }
+                    else if(getCommand.startsWith("PASS"))  {
+
+                        String username = getCommand.split(" ")[1];
+                        GUI.displayMessage("Player " + username + " has passed his turn");
+                        currentMove.clear();
+                        GUI.redisplay();
+                    }
+
+                    else if(getCommand.startsWith("END_GAME"))  {
+
+                        endGame();
+
+                        break;
+                    }
+                    else if(getCommand.startsWith("QUIT"))  {
+
+                        String username = getCommand.split(" ")[1];
+
+                        /* Remove the quitted player from list */
+                        for ( int i = 0; i < playerList.size(); i ++ )  {
+                            if ( playerList.get(i).getUsername() == username)   {
+                                playerList.remove(i);
+                            }
+                        }
+                        String noticeMessage = username + " has left the game";
+                        GUI.displayMessage(noticeMessage);
+                        GUI.redisplay();
+                    }
                 }
-                else if(getCommand.startsWith("TILE"))  {
-
-                    String strTileID = getCommand.split(" ")[1];
-                    int tileID = Integer.parseInt(strTileID);
-                    receiveLetter(tileID);
-                    /* User Interface display the message */
-                }
-                else if(getCommand.startsWith("SET_SCORE"))  {
-
-                    String wordScore = getCommand.split(" ")[1];
-                    int score = Integer.parseInt(wordScore);
-                    currentPlayer.addScore(score);
-                    /* User Interface display the score accordingly  */
-                    GUI.redisplay();
-                }
-                else if(getCommand.startsWith("PASS"))  {
-
-                    String username = getCommand.split(" ")[1];
-                    GUI.displayMessage("Player " + username + " has passed his turn");
-                    currentMove.clear();
-                    /* User Interface display the score accordingly  */
-                    // GUI.repaint();
+                catch(Exception e)  {
+                    e.printStackTrace();
                 }
 
-
-                else if(getCommand.startsWith("END_GAME"))  {
-
-                    endGame();
-                    
-                    break;
-                }
             }
 
-        }
-
-        public void startTurn() {
-
-
-        }
-
-        public void endTurn()   {
-
-            
         }
         
         public Player getPlayer()
@@ -456,10 +475,19 @@ public class GameClient {
         	return player;
         }
         
-        public void play()  throws IOException  {
+        public void run()    {
 
-            preparation();
-            mainGame();
+            while ( true )  {
+
+                try {
+                    if (preparation())
+                    mainGame();
+                    else break;
+                }
+                catch ( IOException e)  {
+                    e.printStackTrace();
+                }
+            }
             
         }
 
