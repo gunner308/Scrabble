@@ -47,14 +47,14 @@ public class Board {
     {
     	board = new Square[size][size];
     	for (int i = 0; i < size; i++)
-    		for (int j = 0; j < size; j++)
-    			board[i][j] = new Square(BOARD[i][j]);
+            for (int j = 0; j < size; j++)
+                board[i][j] = new Square(BOARD[i][j]);
     }
 
     // get a square
     public Square getSquare(int i, int j)
     {
-    	return board[i][j];
+            return board[i][j];
     }
 
     // update a move to the board
@@ -109,50 +109,110 @@ public class Board {
         }
         return max;
     }
-    //check if the NEW tiles is in one row or one column
+    //check if the NEW tiles is in one row or one column and connect with each others
     private int isOneLine(Vector<LetterMove> currentMove)
     {
-        if (currentMove.size() == 2)
-        {
-            if (currentMove.elementAt(0).x == currentMove.elementAt(1).x 
-                && Math.abs(currentMove.elementAt(0).y - currentMove.elementAt(1).y) ==1 ) 
-            {
-                return 1;//horizontal
-            }
-            if (currentMove.elementAt(0).y == currentMove.elementAt(1).y
-                && Math.abs(currentMove.elementAt(0).x - currentMove.elementAt(1).x) ==1)
-            {
-                return 2;//vertical
-            }
-            return 0;//not one line
-        }
+        if (currentMove.size() == 1) return 1;
         //more than 2 tiles in a move
-        if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
+        else
         {
-            for (int i=2; i<currentMove.size(); i++)
+            if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
             {
-                if (currentMove.elementAt(i).x != currentMove.elementAt(0).x) return 0;
+                for (int i=1; i<currentMove.size(); i++)
+                {
+                    if (currentMove.elementAt(i).x != currentMove.elementAt(0).x) return 0;
+                }
+                return 1;
             }
-            for (int i = findMin(currentMove); i<=findMax(currentMove); i++)
+            else if (currentMove.elementAt(0).y == currentMove.elementAt(1).y)
             {
-                if (!board [currentMove.elementAt(0).x][i].isOccupied()) return 0;
+                for (int i=1; i<currentMove.size(); i++)
+                {
+                    if (currentMove.elementAt(i).y != currentMove.elementAt(0).y) return 0;
+                }
+                return 2;
             }
-            return 1;
+            else return 0;
         }
-        else if (currentMove.elementAt(0).y == currentMove.elementAt(1).y)
-        {
-            for (int i=2; i<currentMove.size(); i++)
-            {
-                if (currentMove.elementAt(i).y != currentMove.elementAt(0).y) return 0;
-            }
-            for (int i = findMin(currentMove); i<=findMax(currentMove); i++)
-            {
-                if (!board [i][currentMove.elementAt(0).y].isOccupied()) return 0;
-            }
-            return 2;
-        }
-        else return 0;
     }
+    private boolean preOccupied (Position p, Vector <LetterMove> m)
+    {
+        for (int i=0; i<m.size(); i++)
+        {
+            if (m.elementAt(i).x == p.x && m.elementAt(i).y == p.y) 
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    //check if the new tiles connect with old tiles
+    public boolean checkConnected (Vector <LetterMove> m)
+    {
+        if (!preOccupied(new Position (7, 7), m)) return false;
+        if (m.size() == 1)
+        {
+            if (m.elementAt(0).x > 0)
+            {
+                if (board[m.elementAt(0).x-1][m.elementAt(0).y].isOccupied()) return true;
+            }
+            if (m.elementAt(0).x < 14)
+            {
+                if (board[m.elementAt(0).x+1][m.elementAt(0).y].isOccupied()) return true;
+            }
+            if (m.elementAt(0).y > 0)
+            {
+                if (board[m.elementAt(0).x-1][m.elementAt(0).y-1].isOccupied()) return true;
+            }
+            if (m.elementAt(0).y < 14)
+            {
+                if (board[m.elementAt(0).x-1][m.elementAt(0).y+1].isOccupied()) return true;
+            }
+        }
+        else
+        {
+            if (isOneLine(m) == 1)
+            {
+                int start, end;
+                if (findMin(m) > 0) start = findMin(m)-1;
+                else start = findMin(m);
+                if (findMax(m) < size-1) end = findMax(m)+1;
+                else end = findMax(m);
+                while (start <=end)
+                {
+                    if (!board[m.elementAt(0).x][start].isOccupied() 
+                        && !preOccupied(new Position (m.elementAt(0).x, start), m)) return false;
+                    start ++;
+                }
+            }
+            else
+            {
+                int start, end;
+                if (findMin(m) > 0) start = findMin(m)-1;
+                else start = findMin(m);
+                if (findMax(m) < size-1) end = findMax(m)-1;
+                else end = findMax(m);
+                while (start <=end)
+                {
+                    if (board[start][m.elementAt(0).y].isOccupied()
+                        && !preOccupied(new Position (start, m.elementAt(0).y), m)) return false;
+                    start ++;
+                }
+            }
+        }
+        return true;
+    }
+    
+    public int isLine (Vector <LetterMove> currentMove)
+    {
+        if (isOneLine(currentMove) == 0) return 0;     
+        else
+        {
+            if (checkConnected(currentMove)) return isOneLine(currentMove);//if connect
+            else return 0;//not connect
+        }
+    }
+    
     //make the word correspoding to the main direction 
     private String makeMainWord (Vector<LetterMove> currentMove)
     {
@@ -185,7 +245,7 @@ public class Board {
         }
         else
         {
-            if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
+            if (isLine (currentMove) == 1)
             {
                 String tmp = "";
                 int it = findMin(currentMove) - 1;
@@ -193,7 +253,7 @@ public class Board {
                 {
                     tmp += board[currentMove.elementAt(0).x][it].tile.letter;
                     if ((it>0 && 
-                    !board[currentMove.elementAt(0).y][it-1].isOccupied()) || it==0) 
+                    !board[currentMove.elementAt(0).x][it-1].isOccupied()) || it==0) 
                     {
                         Position p = new Position (currentMove.elementAt(0).x, it);
                         initPos.add(p);
@@ -206,16 +266,28 @@ public class Board {
                 }
                 for (int i= findMin(currentMove); i<=findMax(currentMove); i++)
                 {
-                    s += board[currentMove.elementAt(0).x][i].tile.letter;
+                    if (board[currentMove.elementAt(0).x][i].isOccupied())
+                        s += board[currentMove.elementAt(0).x][i].tile.letter;
+                    else
+                    {
+                        for (int run=0; run<currentMove.size(); run++)
+                        {
+                            if (currentMove.elementAt(run).x == currentMove.elementAt(0).x 
+                                && currentMove.elementAt(run).y == i)
+                            {
+                                s += Constants.tileLetter[currentMove.elementAt(run).tile.id];
+                            }
+                        }
+                    }
                 }
-                int j = currentMove.elementAt(0).y+1;
+                int j = findMax(currentMove) +1;
                 while (j<size && board[j][currentMove.elementAt(0).y].isOccupied())
                 {
                     s += board[currentMove.elementAt(0).x][j].tile.letter;
                     j++;
                 }
             }
-            else
+            else if (isLine(currentMove) == 2)
             {
                 String tmp = "";
                 int it = findMin(currentMove) - 1;
@@ -236,7 +308,19 @@ public class Board {
                 }
                 for (int i= findMin(currentMove); i<=findMax(currentMove); i++)
                 {
-                    s += board[i][currentMove.elementAt(0).y].tile.letter;
+                    if (board[i][currentMove.elementAt(0).y].isOccupied())
+                        s += board[i][currentMove.elementAt(0).y].tile.letter;
+                    else
+                    {
+                        for (int run =0; run < currentMove.size(); run ++)
+                        {
+                            if (currentMove.elementAt(run).x == i
+                                && currentMove.elementAt(run).y == currentMove.elementAt(0).y)
+                            {
+                                s += Constants.tileLetter[currentMove.elementAt(run).tile.id];
+                            }
+                        }
+                    }
                 }
                 int j = currentMove.elementAt(0).x+1;
                 while (j<size && board[j][currentMove.elementAt(0).y].isOccupied())
@@ -330,66 +414,5 @@ public class Board {
         if (board[p.x][p.y].isOccupied()) return false;
         return true;
     }
-    //check if the new tiles connect with old tiles
-    public boolean checkConnected (Vector <LetterMove> m)
-    {
-        if (m.size() == 1)
-        {
-            if (m.elementAt(0).x > 0)
-            {
-                if (!checkNewLetter(new Position(m.elementAt(0).x-1, m.elementAt(0).y))) return true;
-            }
-            if (m.elementAt(0).x < 14)
-            {
-                if (!checkNewLetter(new Position(m.elementAt(0).x+1, m.elementAt(0).y))) return true;
-            }
-            if (m.elementAt(0).y > 0)
-            {
-                if (!checkNewLetter(new Position(m.elementAt(0).x, m.elementAt(0).y-1))) return true;
-            }
-            if (m.elementAt(0).y < 14)
-            {
-                if (!checkNewLetter(new Position(m.elementAt(0).x, m.elementAt(0).y+1))) return true;
-            }
-        }
-        else
-        {
-            if (isOneLine(m) == 1)
-            {
-                int start, end;
-                if (findMin(m) > 0) start = findMin(m)-1;
-                else start = 0;
-                if (findMax(m) > 0) end = findMax(m)-1;
-                else end = size-1;
-                while (start <=end)
-                {
-                    if (!checkNewLetter(new Position(m.elementAt(0).x, start))) return true;
-                    start ++;
-                }
-            }
-            else
-            {
-                int start, end;
-                if (findMin(m) > 0) start = findMin(m)-1;
-                else start = 0;
-                if (findMax(m) > 0) end = findMax(m)-1;
-                else end = size-1;
-                while (start <=end)
-                {
-                    if (!checkNewLetter(new Position(start, m.elementAt(0).y))) return true;
-                    start ++;
-                }
-            }
-        }
-        return false;
-    }
-    public int isLine (Vector <LetterMove> currentMove)
-    {
-        if (isOneLine(currentMove) == 0) return 0;
-        else
-        {
-            if (checkConnected(currentMove)) return isOneLine(currentMove);//if connect
-            else return 0;//not connect
-        }
-    }
+    
 }

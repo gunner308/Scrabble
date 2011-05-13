@@ -12,6 +12,8 @@ import scrabble.Player;
 import scrabble.game.LetterMove;
 
 public class ServerThread extends Thread {
+    //public static final String host = "127.0.0.1";
+    //public static final int port = 10003;
     private BufferedReader inFromClient;
     private DataOutputStream outToClient;
     private Socket skt;
@@ -29,6 +31,29 @@ public class ServerThread extends Thread {
         inFromClient = new BufferedReader(new InputStreamReader(skt.getInputStream()));
         outToClient = new DataOutputStream(skt.getOutputStream());
     }
+    
+    /* DEBUGGING */
+    /*public ServerThread (Game _game, Socket _skt) throws IOException
+    { 
+        skt = _skt;
+        inFromClient = new BufferedReader(new InputStreamReader(skt.getInputStream()));
+        outToClient = new DataOutputStream(skt.getOutputStream());
+    }*/
+    
+    /*public void debugSending()   {
+        String string = "";
+        
+        
+        
+    }*/
+    /*public static void main (String args[]) throws Exception
+    {
+        ServerThread newThread = new ServerThread (host, port);
+        //newThread.debugSending();
+        //newThread
+    }*/
+    
+    /* END DEBUGGING */
 
     public void outToAll (String s, int exception)
     {
@@ -45,7 +70,16 @@ public class ServerThread extends Thread {
                     out.writeBytes(s);
                 }
                 catch (IOException ioe){
-
+                    if (!isMaster)
+                    {
+                        quitHandler();
+                        break;
+                    }
+                    else
+                    {
+                        masterQuit = true;
+                        break;
+                    }
                 }
                 lockWrite = false;
             }
@@ -64,7 +98,7 @@ public class ServerThread extends Thread {
             {
                 while(lockWrite);
                 lockWrite = true;
-                outToClient.writeBytes("ERROR 1"+'\0');
+                outToClient.writeBytes("ERROR 1\n");
                 lockWrite = false;
                 continue;
             }
@@ -76,27 +110,28 @@ public class ServerThread extends Thread {
             {
                 while(lockWrite);
                 lockWrite = true;
-                outToClient.writeBytes("ERROR 1" + '\0');
+                outToClient.writeBytes("ERROR 1\n");
+                skt.close();
                 lockWrite = false;
-                continue;
+                continue; 
             }
             username = temp[1];
             clientSocketList.add(skt);
             Player p = new Player(username);
             game.getPlayerList().add(p);
-            outToAll ("JOIN" + '\0', -1);
+            outToAll ("JOIN " + username + "\n", -1);
             break;
         }
     }
     public void resignHandler()
     {
         game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setResign(true);
-        outToAll ("SURRENDER" + username + '\0', clientSocketList.indexOf(skt));
+        outToAll ("SURRENDER" + username + "\n", clientSocketList.indexOf(skt));
         //fixTurn (j);
     }
     public void quitHandler()
     {
-        outToAll ("QUIT" + username + '\0', clientSocketList.indexOf(skt));
+        outToAll ("QUIT" + username + "\n", clientSocketList.indexOf(skt));
         game.getPlayerList().removeElementAt(clientSocketList.indexOf(skt));
         clientSocketList.remove(skt);
     }
@@ -109,11 +144,7 @@ public class ServerThread extends Thread {
             if (inFromClient.ready())
             {
                 line = inFromClient.readLine();
-                if (line.startsWith("MESSAGE")) {
-                    chat(line);
-                    //timing = System.currentTimeMillis();
-                }
-                else if(line.startsWith("QUIT"))
+                if(line.startsWith("QUIT"))
                 {
                     if (!isMaster)
                     {
@@ -145,62 +176,61 @@ public class ServerThread extends Thread {
                             outToClient.writeBytes("ERROR 3");
                         }
                     }
-                    if (!line.startsWith("START") && !line.startsWith("CHAT")
-                            && !line.startsWith("NOTREADY") && !line.startsWith("READY"))
+                    if (!line.startsWith("START") && !line.startsWith("CHAT"))
                     {
                         outToClient.writeBytes("ERROR -1");
                     }
                 }
             }
-            /*
-            if (System.currentTimeMillis() - timing > 180000){
-                quited = true;
-                quit();
-                break;
-            }*/
         }
     }
     public void controlInPlay () throws IOException
     {
+        long timing=0;
         String line;
         while (true)
         {
-            if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true) break;
-            outToAll ("TURN" + game.nextTurn() + '\0', -1);
-            if (inFromClient.ready())
+            if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true) 
+                break;
+            
+            outToAll ("TURN" + game.nextTurn() + "\n", -1);
+            timing = System.currentTimeMillis();
+            if (inFromClient.ready()
+                && !game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned())
             {
+                timing = System.currentTimeMillis();
                 line = inFromClient.readLine();
                 if (line.startsWith("PLACE"))
                 {
                     String []s = line.split(" ");
-                    LetterMove letterMove = new LetterMove (s[1].charAt(0), s[2], s[3]);
+                    LetterMove letterMove = new LetterMove (s[1], s[2], s[3]);
                     game.updateMove(letterMove);
-                    outToAll (line + '\0', clientSocketList.indexOf(skt));
+                    outToAll (line + "\n", clientSocketList.indexOf(skt));
                 }
                 if (line.startsWith("REMOVE"))
                 {
-                    outToAll (line + '\0', clientSocketList.indexOf(skt));
+                    outToAll (line + "\n", clientSocketList.indexOf(skt));
                 }
                 if (line.startsWith("SUBMIT"))
                 {
                     if (game.checkWord())
                     {
-                        outToClient.writeBytes("ACCEPT" + '\0');
+                        outToAll("ACCEPT\n", -1);
                         outToClient.writeBytes("SET_SCORE" + game.calculateScore());
                     }
-                    else outToClient.writeBytes("REFUSE" +'\0');
+                    else outToClient.writeBytes("REFUSE" +"\n");
                 }
                 if (line.startsWith("EXCHANGE"))
                 {
                     Vector <Tile> exchange = game.exchangeRack();
                     for (int i=0; i< exchange.size(); i++)
                     {
-                        outToClient.writeBytes("TILE" + exchange.elementAt(i).getID() +'\0');
+                        outToClient.writeBytes("TILE" + exchange.elementAt(i).getID() +"n");
                     }
                 }
                 if (line.startsWith("PASS"))
                 {
-                    outToAll("TURN" + game.nextTurn() + '\0', -1);
+                    outToAll("TURN" + game.nextTurn() + "\n", -1);
                 }
                 if (line.startsWith("QUIT"))
                 {
@@ -219,7 +249,15 @@ public class ServerThread extends Thread {
             Vector <Tile> tiles = game.getNewTiles();
             for (int i=0; i< tiles.size(); i++)
             {
-                outToClient.writeBytes("TILE" + tiles.elementAt(i).getID() +'\0');
+                outToClient.writeBytes("TILE" + tiles.elementAt(i).getID() +"\n");
+            }
+            if (System.currentTimeMillis() - timing >= 120000)
+            {
+                outToAll ("TURN" + game.nextTurn() + "\n", -1);
+            }
+            if (game.endGame())
+            {
+                outToAll("END_GAME\n", -1);
             }
         }
     }
@@ -227,8 +265,8 @@ public class ServerThread extends Thread {
     {
         try
         {
-            while (true)
-            {
+            //while (true)
+            //{
                 welcome();
                 while (!masterQuit)
                 {
@@ -237,8 +275,8 @@ public class ServerThread extends Thread {
                     controlInPlay();
                     //if (quited) break;
                 }
-                if (!masterQuit) break;
-            }
+                //if (!masterQuit) break;
+            //}
         }
         /*catch (SocketException se){
             System.out.println("SocketException!!!");
@@ -246,8 +284,7 @@ public class ServerThread extends Thread {
         }*/
         catch (IOException ioe)
         {
-            //System.out.println(ioe);
-            //quit();
+            
     	}
 
     }
