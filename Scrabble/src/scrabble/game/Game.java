@@ -31,9 +31,15 @@ public class Game {
     	isStarted = true;
     }
 
-    public void finishGame()
+    public boolean endGame()
     {
-    
+        int count = 0;
+        for (int i=0; i<playerList.size(); i++)
+        {
+            if (playerList.elementAt(i).resigned()) count++;
+        }
+
+        return (count>1);
     }
 
     public boolean checkWord()
