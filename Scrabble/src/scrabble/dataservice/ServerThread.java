@@ -116,12 +116,13 @@ public class ServerThread extends Thread {
                 continue; 
             }
             username = temp[1];
+            System.out.println("Size" + game.getPlayerList().size());
             for (int i=0; i < game.getPlayerList().size(); i++)
             {
                 outToClient.writeBytes("JOIN " + game.getPlayerList().elementAt(i).getUsername() + "\n");
             }
             clientSocketList.add(skt);
-            Player p = new Player(username);
+            Player p = new Player(username, false);
             game.getPlayerList().add(p);
             outToAll ("JOIN " + username + "\n", -1);
             break;
@@ -194,12 +195,13 @@ public class ServerThread extends Thread {
     {
         long timing=0;
         String line;
+        outToAll ("TURN" + game.nextTurn() + "\n", -1);
         while (true)
         {
             if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true) 
                 break;
             
-            outToAll ("TURN" + game.nextTurn() + "\n", -1);
+            
             timing = System.currentTimeMillis();
             if (inFromClient.ready()
                 && !game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned())

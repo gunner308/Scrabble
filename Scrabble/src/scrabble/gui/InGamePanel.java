@@ -13,6 +13,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
+import scrabble.chat.ChatClient;
 import scrabble.dataservice.*;
 import scrabble.game.Board;
 import scrabble.Player;
@@ -23,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,19 +35,26 @@ public class InGamePanel extends JPanel{
 	private GamePanel gamePanel;
 	private Board board;
 	private Player player;
+	private Vector<Player> playerList;
 	private GameClient client;
 	Image bgimage = null;
+	private boolean hasStarted = false;
+	private ChatClient cc;
 	
 	public InGamePanel(){}
 	
 	public InGamePanel(MainFrame f, GameClient _client)
 	{
+		
 		client = _client;
 		mainFrame = f;
 		board = client.getBoard();
 		player = client.getPlayer();
+		playerList = client.getPlayerList();
 		System.out.println("in game");
 		setLayout(null);
+		cc = new ChatClient(player.getUsername(), 200, this);
+		cc.start();
 		
 		addPlayerPanel();
 		addGamePanel();
@@ -59,6 +68,7 @@ public class InGamePanel extends JPanel{
 		}catch(IOException e){
 			e.printStackTrace();
 		}
+		
 	}
 	
 			
@@ -71,7 +81,7 @@ public class InGamePanel extends JPanel{
 	// add panel contains players
 	private void addPlayerPanel()
 	{
-		playerPanel = new PlayerPanel();
+		playerPanel = new PlayerPanel(playerList);
 		playerPanel.setBounds(20, 0, 800, 80);
 		add(playerPanel);
 	}
@@ -79,7 +89,7 @@ public class InGamePanel extends JPanel{
 	// add chat panel
 	private void addChatPanel()
 	{
-		chatPanel = new ChatPanel();
+		chatPanel = new ChatPanel(cc);
 		chatPanel.setBounds( 530, 200, 250, 360);
 		add(chatPanel);
 	}
@@ -99,6 +109,16 @@ public class InGamePanel extends JPanel{
 	{
 		if (client.isMaster()){
 			JButton b = new MyButton("Start game", 120, 30, 600, 100, null);
+			b.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e)
+				{
+					if (!hasStarted && client.canStart()){
+						System.out.println("Start");
+						client.start();
+						displayMessage("The game has been started.");
+					}
+				}
+			});
 			add(b);
 		}
 	}
@@ -109,6 +129,17 @@ public class InGamePanel extends JPanel{
 	private void addResignButton()
 	{
 		JButton b = new MyButton("Resign", 120, 30, 530, 150, null);
+		b.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e)
+			{
+				if (hasStarted){
+					player.setResign(true);
+					client.resign();
+					mainFrame.redisplay();
+					displayMessage("You have resigned.");
+				}
+			}
+		});
 		add(b);
 	}
 	
@@ -118,7 +149,41 @@ public class InGamePanel extends JPanel{
 	private void addQuitGameButton()
 	{
 		JButton b = new MyButton("Quit", 120, 30, 660, 150, null);
+		b.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e)
+			{
+				close();
+				client.closeSocket();
+				mainFrame.setStartGameScreen();
+			}
+		});
 		add(b);
+	}
+	/**
+	 * Display a message to user
+	 */
+	public void displayMessage(String s)
+	{
+		chatPanel.displayMessage(s);
+	}
+	
+	public void displayChat(String s)
+	{
+		chatPanel.addChat(s);
+	}
+	
+	public void close()
+	{
+		cc.finish();
+		// TODO: close socket, send quit (quit game dong thoi close socket)
+	}
+	
+	/**
+	 * Call when this player ends turn
+	 */
+	public void endTurn()
+	{
+		
 	}
 
 }

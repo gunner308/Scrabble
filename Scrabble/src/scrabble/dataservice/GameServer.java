@@ -7,7 +7,7 @@ import java.net.Socket;
 import scrabble.game.*;
 
 
-public class GameServer {
+public class GameServer extends Thread{
 	private ServerSocket serverSocket;
 	private Game game;
 
@@ -35,6 +35,15 @@ public class GameServer {
     		Socket skt = serverSocket.accept();
     		System.out.println("Someone is coming in...");
     		new ServerThread(game, skt).start();
+    	}
+    }
+    
+    public void finish()
+    {
+    	try{
+    		serverSocket.close();
+    	}catch (IOException e){
+    		e.printStackTrace();
     	}
     }
 

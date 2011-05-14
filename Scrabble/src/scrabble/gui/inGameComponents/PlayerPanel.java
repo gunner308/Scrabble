@@ -16,25 +16,27 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import scrabble.Player;
+
 public class PlayerPanel extends JPanel{
-	private Vector<PlayerBoxPanel> players; 
+	private Vector<PlayerBoxPanel> players;
+	private Vector<Player> playerList;
 	Box box = Box.createHorizontalBox();
 	
-	public PlayerPanel()
+	public PlayerPanel(Vector<Player> _playerList)
 	{
-		players = new Vector<PlayerBoxPanel>();
+		playerList = _playerList;
+		System.out.println(playerList.size());
 		setLayout(new BorderLayout());
 		setOpaque(false);
+		for (Player i: playerList){
+			box.add(new PlayerBoxPanel(i));
+			box.add(Box.createHorizontalStrut(10));
+		}
 		add(box, BorderLayout.WEST);
-		//this.setSize(800, 100);
-		addPlayer("Player1", true);
-		addPlayer("Player2", false);
-		addPlayer("Player3", false);
-		addPlayer("Player4", false);
-		redisplay();
 	}
 	
-	// add a new player to panel
+	/*// add a new player to panel
 	public void addPlayer(String username, boolean isMaster)
 	{
 		PlayerBoxPanel temp = new PlayerBoxPanel(username, isMaster); 
@@ -51,10 +53,10 @@ public class PlayerPanel extends JPanel{
 			}
 		}
 		redisplay();
-	}
+	}*/
 	
 	//update score of a player
-	public void updateScore(String username, int score)
+	/*public void updateScore(String username, int score)
 	{
 		for (PlayerBoxPanel i:players ){
 			if (i.getUsername().equals(username)){
@@ -63,16 +65,19 @@ public class PlayerPanel extends JPanel{
 			}
 		}
 		redisplay();
-	}
+	}*/
 	
-	private void redisplay()
+	public void paintComponent(Graphics g)
 	{
+		super.paintComponent(g);
+		System.out.println("Painting");
+		System.out.println(playerList.size());
 		box.removeAll();
-		for (PlayerBoxPanel i:players ){
-			box.add(i);
+		for (Player i: playerList){
+			box.add(new PlayerBoxPanel(i));
 			box.add(Box.createHorizontalStrut(10));
 		}
-		this.paintAll(this.getGraphics());
+		//this.paintAll(g);
 	}
 }
 
@@ -81,14 +86,17 @@ class PlayerBoxPanel extends JPanel{
 	private static int HEIGHT = 75;
 	String username;
 	JLabel nameLabel, scoreLabel;
-	boolean isMaster;
+	boolean isMaster, inTurn, isResigned;
 	int score;
 	Image img; 
 	
-	public PlayerBoxPanel(String _username, boolean _isMaster)
+	public PlayerBoxPanel(Player p)
 	{
-		username = _username;
-		isMaster = _isMaster;
+		username = p.getUsername();
+		isMaster = p.isMaster();
+		inTurn = p.isInTurn();
+		isResigned = p.resigned();
+		
 		Color c;
 		if (isMaster){
 			c = Color.blue;
@@ -108,6 +116,12 @@ class PlayerBoxPanel extends JPanel{
 		scoreLabel.setFont(new Font("Serif", Font.BOLD, 23));
 		scoreLabel.setForeground(Color.white);
 		add(scoreLabel);
+		// status
+		if (isResigned){
+			add(new StatusPanel("RESIGN"));
+		}else if (inTurn){
+			add(new StatusPanel("TURN"));
+		}
 		
 		
 		String location;
@@ -132,24 +146,32 @@ class PlayerBoxPanel extends JPanel{
 	public void paintComponent(Graphics g) 
 	{
 	    super.paintComponent(g);
+	    //System.out.println("Paint o player");
 	    g.drawImage(img, 0, 0, WIDTH, HEIGHT, null);
 	}
 	
-	
-	/**
-	 * return username
-	 */
-	public String getUsername()
-	{
-		return username;
-	}
-	
-	/**
-	 * update new score
-	 */
-	public void updateScore(int _score)
-	{
-		score = _score;
+	class StatusPanel extends JPanel{
+		String text;
+		Image img;
+		
+		public StatusPanel(String t)
+		{
+			text = t;
+			try{
+				img = ImageIO.read(new File("images/STATUS.png"));
+			}catch (IOException e){
+				e.printStackTrace();
+			}
+			JLabel l = new JLabel(text);
+			l.setBounds(5, 5, 50, 30);
+			add(l);
+		}
+		
+		public void paintComponent(Graphics g) 
+		{
+		    super.paintComponent(g);
+		    g.drawImage(img, 0, 0, null);
+		}
 	}
 	
 }

@@ -8,13 +8,18 @@ public class Player {
     int score;
     Vector<Tile> rack;
     boolean resign;
+    boolean inTurn;
+    boolean isMaster;
     
 
-    public Player(String _username)
+    public Player(String _username, boolean _isMaster)
     {
         username = _username;
         score = 0;
-        
+        rack = new Vector<Tile>();
+        resign = false;
+        inTurn = false;
+        isMaster = _isMaster;
     }
 
     public String getUsername()
@@ -46,6 +51,16 @@ public class Player {
     public Vector<Tile> getRack()   {
 
         return rack;
+    }
+    
+    public boolean isInTurn()
+    {
+    	return inTurn;
+    }
+    
+    public boolean isMaster()
+    {
+    	return isMaster;
     }
 
 

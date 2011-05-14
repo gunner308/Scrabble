@@ -29,6 +29,7 @@ class StartGamePanel extends JPanel{
 					showGameButton;
 	private MulticastDiscoverer md = null;
 	private MulticastAnnouncer ma = null;
+	private GameServer server = null;
 	
 	String hostName = null;
 	
@@ -85,7 +86,7 @@ class StartGamePanel extends JPanel{
 					InGamePanel scr = new InGamePanel();
 				}
 				else{
-					JOptionPane.showMessageDialog(null, "Your username is invalid.");
+					displayMessage("Your username is invalid.");
 				}
 			}
 		});
@@ -121,7 +122,7 @@ class StartGamePanel extends JPanel{
 					createServer(name);
 				}
 				else{
-					JOptionPane.showMessageDialog(null, "Your host's name is invalid.");
+					displayMessage("Your host's name is invalid.");
 				}
 			};
 		});
@@ -160,7 +161,8 @@ class StartGamePanel extends JPanel{
 	{
 		hostName = name;
 		try{
-			GameServer server = new GameServer(6789);
+			server = new GameServer(6789);
+			server.start();
 			ma = new MulticastAnnouncer(hostName);
 			ma.start();
 			pause(500);
@@ -181,9 +183,9 @@ class StartGamePanel extends JPanel{
 		}catch (IOException e){
 			e.printStackTrace();
 			if (hostName == null){
-				JOptionPane.showMessageDialog(null, "You have not selected host.");
+				displayMessage("You have not selected host.");
 			} else{
-				JOptionPane.showMessageDialog(null, "The selected host is not exist.");
+				displayMessage("The selected host is not exist.");
 			}
 		}
 	}
@@ -194,6 +196,26 @@ class StartGamePanel extends JPanel{
 		try{
 		    Thread.sleep(miliseconds);
 		}catch (InterruptedException io){}
+	}
+	
+	/**
+	 * Display a message to user
+	 */
+	public void displayMessage(String s)
+	{
+		JOptionPane.showMessageDialog(null, s);
+	}
+	
+	public void closeServer()
+	{
+		if (ma != null){
+			ma.finish();
+			ma = null;
+		}
+		if (server != null){
+			System.out.println("Server finish");
+			server.finish();
+		}
 	}
 	
 	// destructor

@@ -2,7 +2,10 @@ package scrabble.gui;
 
 import javax.swing.JFrame;
 
+import scrabble.chat.ChatClient;
 import scrabble.dataservice.GameClient;
+
+enum STATUS {LOGIN, IN_ROOM};
 
 public final class MainFrame extends JFrame {
 	// default sizes
@@ -15,6 +18,7 @@ public final class MainFrame extends JFrame {
 	private StartGamePanel startGamePanel = null;
 	private InGamePanel inGamePanel = null;
 	GameClient client;
+	private STATUS status;
 	
 	
 	public MainFrame()
@@ -29,34 +33,40 @@ public final class MainFrame extends JFrame {
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);	
+		
 	}
 	
 	// change the screen into start game screen
 	public void setStartGameScreen()
 	{
 		if (inGamePanel != null){
-			this.remove(inGamePanel);
-			inGamePanel = null;
+			inGamePanel.setVisible(false);
 		}
 		
-		if (startGamePanel == null)
+		if (startGamePanel == null){
 			startGamePanel = new StartGamePanel(this);
-		startGamePanel.setBounds(0, 0, WIDTH, HEIGHT);
-		add(startGamePanel);
+			add(startGamePanel);
+		}else{
+			startGamePanel.closeServer();
+			startGamePanel.setVisible(true);
+		}
 		redisplay();
+		status = STATUS.LOGIN;
 	}
 	
 	// change the screen into in game screen
 	public void setInGameScreen(GameClient _client)
 	{
 		if (startGamePanel != null){
-			this.remove(startGamePanel);
+			startGamePanel.setVisible(false);
 		}
 		client = _client;
-		System.out.println(client.isMaster());
+	
 		inGamePanel = new InGamePanel(this, client);
+		inGamePanel.setVisible(true);
 		add(inGamePanel);
 		redisplay();
+		status = STATUS.IN_ROOM;
 	}
 	
 	// redisplay the screen
@@ -80,11 +90,26 @@ public final class MainFrame extends JFrame {
 		
 	}
 	
+	public void startTurn(String username)
+	{
+		
+	}
 	/**
-	 * Display a message
+	 * Call when this user has ended his turn
+	 */
+	public void endTurn()
+	{
+		inGamePanel.endTurn();
+	}
+	
+	/**
+	 * Display a system message
 	 */
 	public void displayMessage(String s)
 	{
-		
+		if (status == STATUS.LOGIN)
+			startGamePanel.displayMessage(s);
+		else
+			inGamePanel.displayMessage(s);
 	}
 }

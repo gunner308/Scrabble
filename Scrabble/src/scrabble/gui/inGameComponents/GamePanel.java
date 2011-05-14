@@ -7,6 +7,8 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -54,7 +56,6 @@ public class GamePanel extends JPanel{
 		setLayout(null);
 		
 		toolkit = Toolkit.getDefaultToolkit();
-		//Load an image for the cursor
 		
 		addBoardPanel();
 		addTilePanel();
@@ -96,6 +97,14 @@ public class GamePanel extends JPanel{
 	private void addPassButton()
 	{
 		JButton b = new MyButton("Pass", 70, 30, 10, 450, null);
+		b.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e)
+			{
+				if (client.isTurn()){
+					client.requestPass();
+				}
+			}
+		});
 		add(b);
 	}
 	
@@ -105,7 +114,14 @@ public class GamePanel extends JPanel{
 	private void addExchangeButton()
 	{
 		JButton b = new MyButton("Swap", 70, 30, 90, 450, null);
-		
+		b.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e)
+			{
+				if (client.isTurn() && client.countTile() >= 7){
+					client.requestExchange();
+				}
+			}
+		});
 		add(b);
 	}
 	
@@ -115,7 +131,14 @@ public class GamePanel extends JPanel{
 	private void addSubmitButton()
 	{
 		JButton b = new MyButton("Submit", 80, 30, 430, 450, null);
-		
+		b.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e)
+			{
+				if (client.isTurn() && client.countTile() >= 7){
+					client.requestExchange();
+				}
+			}
+		});
 		add(b);
 	}
 	
