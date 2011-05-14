@@ -116,6 +116,10 @@ public class ServerThread extends Thread {
                 continue; 
             }
             username = temp[1];
+            for (int i=0; i < game.getPlayerList().size(); i++)
+            {
+                outToClient.writeBytes("JOIN " + game.getPlayerList().elementAt(i).getUsername() + "\n");
+            }
             clientSocketList.add(skt);
             Player p = new Player(username);
             game.getPlayerList().add(p);
@@ -127,6 +131,7 @@ public class ServerThread extends Thread {
     {
         game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setResign(true);
         outToAll ("SURRENDER" + username + "\n", clientSocketList.indexOf(skt));
+        outToAll("TURN "+ game.nextTurn() + "\n", -1);
         //fixTurn (j);
     }
     public void quitHandler()
@@ -134,6 +139,7 @@ public class ServerThread extends Thread {
         outToAll ("QUIT" + username + "\n", clientSocketList.indexOf(skt));
         game.getPlayerList().removeElementAt(clientSocketList.indexOf(skt));
         clientSocketList.remove(skt);
+        outToAll("TURN "+ game.nextTurn() + "\n", -1);
     }
     public void controlInRoom () throws IOException
     {
@@ -217,6 +223,7 @@ public class ServerThread extends Thread {
                     {
                         outToAll("ACCEPT\n", -1);
                         outToClient.writeBytes("SET_SCORE" + game.calculateScore());
+                        outToAll("TURN "+ game.nextTurn() + "\n", -1);
                     }
                     else outToClient.writeBytes("REFUSE" +"\n");
                 }
@@ -227,10 +234,15 @@ public class ServerThread extends Thread {
                     {
                         outToClient.writeBytes("TILE" + exchange.elementAt(i).getID() +"n");
                     }
+                    outToAll("TURN "+ game.nextTurn() + "\n", -1);
                 }
                 if (line.startsWith("PASS"))
                 {
-                    outToAll("TURN" + game.nextTurn() + "\n", -1);
+                    outToAll("TURN " + game.nextTurn() + "\n", -1);
+                }
+                if (line.startsWith("SURRENDER"))
+                {
+                    resignHandler();
                 }
                 if (line.startsWith("QUIT"))
                 {
@@ -249,11 +261,11 @@ public class ServerThread extends Thread {
             Vector <Tile> tiles = game.getNewTiles();
             for (int i=0; i< tiles.size(); i++)
             {
-                outToClient.writeBytes("TILE" + tiles.elementAt(i).getID() +"\n");
+                outToClient.writeBytes("TILE " + tiles.elementAt(i).getID() +"\n");
             }
             if (System.currentTimeMillis() - timing >= 120000)
             {
-                outToAll ("TURN" + game.nextTurn() + "\n", -1);
+                outToAll ("TURN " + game.nextTurn() + "\n", -1);
             }
             if (game.endGame())
             {

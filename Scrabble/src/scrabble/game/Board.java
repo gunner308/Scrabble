@@ -32,7 +32,7 @@ public class Board {
     	 {0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0,},
     	 {0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0,},
     	 {0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0,},
-    	 {4, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 4,},
+    	 {4, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4,},
     	 {0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0,},
     	 {0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0,},
     	 {0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0,},
@@ -336,7 +336,7 @@ public class Board {
     private void makeSecondaryWord (Vector<LetterMove> m)
     {
         String s="";
-        //vertical
+        //horizontal
         if (isLine(m) == 1)
         {
             for (int i=0; i<m.size(); i++)
@@ -358,8 +358,8 @@ public class Board {
                 {
                     s += tmp.charAt(j);
                 }
-                int j = m.elementAt(i).y;
-                while (j<size && board[m.elementAt(i).x][j].isOccupied())
+                int j = m.elementAt(i).x;
+                while (j<size && board[j][m.elementAt(i).y].isOccupied())
                 {
                     s += board[j][m.elementAt(i).y].tile.letter;
                     j++;
@@ -367,7 +367,7 @@ public class Board {
             }
             wordsToCheck.add(s);
         }
-        //horizontal
+        //vertical
         else if (isLine(m) == 2)
         {
             for (int i=0; i<m.size(); i++)
