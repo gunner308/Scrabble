@@ -5,6 +5,8 @@ import java.net.*;
 import java.util.*;
 import java.util.Map.*;
 
+import scrabble.gui.InGamePanel;
+import scrabble.gui.MainFrame;
 import scrabble.gui.inGameComponents.ChatPanel;
 
 public class ChatClient
@@ -18,9 +20,9 @@ public class ChatClient
   private static final int CHAT_PORT = 10987;
   String name;
   private int length;
-  private ChatPanel cp;
+  private InGamePanel inGamePanel;
   
-  public ChatClient(String _name, int _length, ChatPanel _cp) {
+  public ChatClient(String _name, int _length, InGamePanel f) {
     try {
       chatGroup = InetAddress.getByName("228.9.8.7");
       chatSocket = new MulticastSocket(CHAT_PORT);
@@ -33,9 +35,7 @@ public class ChatClient
 
     name = _name;
     length = _length;
-    cp = _cp;
-
-    new Thread(this).start();
+    inGamePanel = f;
   }
 
   public void finish()
@@ -52,9 +52,9 @@ public class ChatClient
   byte[] convert(String message)
   {
       byte[] buf = new byte[length];
-      for (int i=0; i<name.length(); i++)
+      for (int i=0; i<message.length(); i++)
       {
-        buf[i] = (byte)name.charAt(i);
+        buf[i] = (byte)message.charAt(i);
       }
       return buf;
   }
@@ -71,6 +71,7 @@ public class ChatClient
 
     public void sendMessage(String message)
     {
+    	message = name + ": " + message;
         byte[] buf = convert(message);
 
         chatDatagram = new DatagramPacket(buf, buf.length,
@@ -85,6 +86,7 @@ public class ChatClient
         }
     }
 
+    @Override
   public void run() 
   {
       byte[] buf = new byte[1000];
@@ -94,7 +96,7 @@ public class ChatClient
         try
         {
             chatSocket.receive(recv);
-            cp.newMessage(convert(recv.getData()));
+            inGamePanel.displayChat(convert(recv.getData()));
         }
         catch (Exception e)
         {
