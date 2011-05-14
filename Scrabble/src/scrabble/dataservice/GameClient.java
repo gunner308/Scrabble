@@ -44,6 +44,7 @@ public class GameClient extends Thread {
 	private Player currentPlayer;
 	private Vector<LetterMove> currentMove;
 	private boolean isMaster;
+	private boolean stop = false;
 
 	private MainFrame GUI;
 
@@ -57,6 +58,7 @@ public class GameClient extends Thread {
 		player = new Player(playerName, isMaster);
 		board = new Board();
 		playerList = new Vector<Player> ();
+		currentMove = new Vector<LetterMove> ();
 		playerList.add(player);
 		GUI = _GUI;
 
@@ -64,9 +66,10 @@ public class GameClient extends Thread {
 		inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		inFromServer = new BufferedReader(new InputStreamReader(skt.getInputStream()));
 		outToServer = new DataOutputStream(skt.getOutputStream());
-
-		String nameMessage = "NAME" + playerName + "\n";
-		sendMessage(nameMessage);
+		System.out.println(skt.toString());
+		String nameMessage = "NAME " + playerName + "\n";
+		outToServer.writeBytes(nameMessage);
+		System.out.println(nameMessage);
 		GUI.setInGameScreen(this);
 	}
 
@@ -98,12 +101,15 @@ public class GameClient extends Thread {
 		isMaster = _isMaster;
 	}
 
-	public void setCurrentPlayer(String usernameSentByHost)  {
-
-		for ( int i = 0; i < playerList.size(); i++ )    {
-
-			if ( playerList.get(i).getUsername().compareTo(usernameSentByHost) == 0) {
-				currentPlayer = playerList.get(i);
+	public void setCurrentPlayer(String usernameSentByHost)  
+	{
+		for (Player i : playerList){
+			if ( i.getUsername().compareTo(usernameSentByHost) == 0) {
+				currentPlayer = i;
+				currentPlayer.setTurn(true);
+			}
+			else{
+				i.setTurn(false);
 			}
 		}
 	}
@@ -131,7 +137,6 @@ public class GameClient extends Thread {
 
 	/* Check if "my" player is in turn or not */
 	public boolean isTurn() {
-
 		if ( currentPlayer.getUsername().compareTo(player.getUsername()) == 0 ) return true;
 		return false;
 
@@ -160,7 +165,7 @@ public class GameClient extends Thread {
 		String serverMsg = inFromServer.readLine();
 		while (!serverMsg.startsWith(inquery))
 		{
-			System.out.println(serverMsg);
+			//System.out.println(serverMsg);
 			serverMsg = inFromServer.readLine();
 		}
 		return serverMsg;
@@ -173,12 +178,6 @@ public class GameClient extends Thread {
 
 		// GUI.receiveLetter(int tileID);
 	}
-
-
-
-
-
-
 
 	public void requestExchange() {
 
@@ -252,15 +251,23 @@ public class GameClient extends Thread {
 
 	public boolean canStart()   {
 
-		if ( isMaster() && playerList.size() >= 2 )
+		if ( isMaster() && playerList.size() >= 1 )
 			return true;
 		else return false;
 	}
 
-	public void callStartGame() throws IOException {
+	public void callStartGame() {
 
 		String startMessage = "START_GAME" + "\n";
-		sendMessage(startMessage);
+		try
+		{
+			outToServer.writeBytes(startMessage);
+		//	System.out.println(startMessage);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 
 	}
 
@@ -290,13 +297,14 @@ public class GameClient extends Thread {
 			}
 		}
 		int tileOnHands = 0;
+
 		for ( int i = 0; i < playerList.size(); i ++ )  {
 
 			tileOnHands += playerList.get(i).getRack().size();
 
 		}
-		System.out.println(tileOnBoard);
-		System.out.println(tileOnHands);
+		//System.out.println(tileOnBoard);
+	//	System.out.println(tileOnHands);
 		int tileOnBag = 100 - tileOnBoard - tileOnHands;
 		if (tileOnBag < 0){
 			tileOnBag = 0;
@@ -310,79 +318,90 @@ public class GameClient extends Thread {
 	}
 
 	public void closeSocket() {
+		stop = true;
+
 		try{
-			inFromUser.close();
-			inFromServer.close();
-			outToServer.close();
 			skt.close();
 			// TO DO: server stop
 		}catch (IOException e){
 			e.printStackTrace();
 		}
-
 	}
 
 	public boolean preparation() throws IOException   {
 
 		//String playerName = inFromUser.readLine();
 		//setPlayer(new Player(playerName));
+	//	System.out.println("PREPARATION");
 		String getCommand = "";
-		while ( true ) {
+		while ( !stop ) {
 
-			try {
-				getCommand = inFromServer.readLine();
+			getCommand = inFromServer.readLine();
+			//System.out.println(getCommand);
 
-				if ( getCommand.startsWith("START")) {
+			if ( getCommand.startsWith("START")) {
 
-					GUI.startGame();
-					return true;
-				}
-				else if(getCommand.startsWith("JOIN"))  {
+				String startGame = "GAME STARTED";
+				GUI.displayMessage(startGame);
+				return true;
+			}
+			else if(getCommand.startsWith("JOIN"))  {
 
-					String playerName = getCommand.split(" ")[1];
+				String playerName = getCommand.split(" ")[1];
+				if (!playerName.equals(player.getUsername()))
 					addPlayerToList(new Player(playerName, false));
-					// GUI display joining player
-					GUI.redisplay();
-					System.out.println(playerName);
-					GUI.displayMessage(playerName + " has joined game.");
-				}
-				else if(getCommand.startsWith("LEAVE"))  {
-
-					String playerName = getCommand.split(" ")[1];
-					removePlayerFromList(playerName);
-					// GUI display removing player
-					GUI.redisplay();
-				}
-				else if(getCommand.startsWith("ERROR"))  {
-
-					String errorMessage = "Room is already full";
-					GUI.displayMessage(errorMessage);
-					this.closeSocket();
-					return false;
-				}
-
+				// GUI display joining player
+				//GUI.redisplay();
+				//System.out.println(playerName);
+				GUI.displayMessage(playerName + " has joined game.");
+				GUI.redisplay();
 			}
-			catch (Exception e) {
-				e.printStackTrace();;
+			else if(getCommand.startsWith("LEAVE"))  {
+
+				String playerName = getCommand.split(" ")[1];
+				removePlayerFromList(playerName);
+				// GUI display removing player
+				GUI.redisplay();
 			}
+			else if(getCommand.startsWith("ERROR"))  {
+
+				String errorMessage = "Room is already full";
+				GUI.displayMessage(errorMessage);
+				this.closeSocket();
+				return false;
+			}
+
 		}
+		return false;
 
+	}
+
+	private void pause(int time)
+	{
+		try{
+			Thread.sleep(time);
+		}catch (InterruptedException e){
+			e.printStackTrace();
+		}
 	}
 
 	public void mainGame() throws IOException {
 
 		String getCommand = "";
 
-		while ( true )  {
+		while ( !stop )  {
+			pause(100);
 			try {
 				getCommand = inFromServer.readLine();
+				System.out.println("Command nhan dc: " + getCommand);
 				if (getCommand.startsWith("TURN")) {
 					//turn ++;
 					String currentPlayerName = getCommand.split(" ")[1];
 					setCurrentPlayer(currentPlayerName);
-					GUI.redisplay();
+					
 					GUI.startTurn(currentPlayerName);
 					GUI.displayMessage(currentPlayerName + " is in turn.");
+					GUI.redisplay();
 				}
 
 				else if(getCommand.startsWith("PLACE"))  {
@@ -414,7 +433,6 @@ public class GameClient extends Thread {
 
 					String wordScore = getCommand.split(" ")[1];
 					int score = Integer.parseInt(wordScore);
-					currentPlayer.addScore(score);
 					/* User Interface display the score accordingly  */
 					GUI.redisplay();
 				}
@@ -469,21 +487,21 @@ public class GameClient extends Thread {
 	}
 
 	public void run()    {
+		//while ( true )  {
 
-		while ( true )  {
-
-			try {
-				if (preparation())
-					mainGame();
-				else break;
-			}
-			catch ( IOException e)  {
-				e.printStackTrace();
-			}
+		try {
+			if (preparation())
+				mainGame();
+			//else break;
+		}
+		catch ( IOException e)  {
+			e.printStackTrace();
 		}
 
+
+
 	}
-	
+
 	public Vector<Player> getPlayerList()
 	{
 		return playerList;

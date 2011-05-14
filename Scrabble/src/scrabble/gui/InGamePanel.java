@@ -51,7 +51,7 @@ public class InGamePanel extends JPanel{
 		board = client.getBoard();
 		player = client.getPlayer();
 		playerList = client.getPlayerList();
-		System.out.println("in game");
+		//System.out.println("in game");
 		setLayout(null);
 		cc = new ChatClient(player.getUsername(), 200, this);
 		cc.start();
@@ -68,6 +68,7 @@ public class InGamePanel extends JPanel{
 		}catch(IOException e){
 			e.printStackTrace();
 		}
+                
 		
 	}
 	
@@ -113,9 +114,7 @@ public class InGamePanel extends JPanel{
 				public void actionPerformed(ActionEvent e)
 				{
 					if (!hasStarted && client.canStart()){
-						System.out.println("Start");
-						client.start();
-						displayMessage("The game has been started.");
+						client.callStartGame();
 					}
 				}
 			});
@@ -152,8 +151,9 @@ public class InGamePanel extends JPanel{
 		b.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e)
 			{
-				close();
+                                //System.out.println("client going to stop\n");
 				client.closeSocket();
+                                //System.out.println("client has stopped\n");
 				mainFrame.setStartGameScreen();
 			}
 		});
@@ -184,6 +184,13 @@ public class InGamePanel extends JPanel{
 	public void endTurn()
 	{
 		
+	}
+	
+	public void redisplay()
+	{
+		chatPanel.repaint();
+		gamePanel.repaint();
+		playerPanel.redisplay();
 	}
 
 }

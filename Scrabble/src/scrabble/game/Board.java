@@ -69,20 +69,23 @@ public class Board {
     private int findMin (Vector <LetterMove> currentMove)
     {
         int min = 0;
-        if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
+        if (currentMove.size() >= 2)
         {
-            min = currentMove.elementAt(0).y;
-            for (int i=1; i< currentMove.size(); i++)
+            if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
             {
-                if (currentMove.elementAt(i).y < min) min = currentMove.elementAt(i).y;
+                min = currentMove.elementAt(0).y;
+                for (int i=1; i< currentMove.size(); i++)
+                {
+                    if (currentMove.elementAt(i).y < min) min = currentMove.elementAt(i).y;
+                }
             }
-        }
-        else
-        {
-            min = currentMove.elementAt(0).x;
-            for (int i=1; i< currentMove.size(); i++)
+            else
             {
-                if (currentMove.elementAt(i).x < min) min = currentMove.elementAt(i).x;
+                min = currentMove.elementAt(0).x;
+                for (int i=1; i< currentMove.size(); i++)
+                {
+                    if (currentMove.elementAt(i).x < min) min = currentMove.elementAt(i).x;
+                }
             }
         }
         return min;
@@ -91,20 +94,23 @@ public class Board {
     private int findMax (Vector <LetterMove> currentMove)
     {
         int max = 0;
-        if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
+        if (currentMove.size() >= 2)
         {
-            max = currentMove.elementAt(0).y;
-            for (int i=1; i< currentMove.size(); i++)
+            if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
             {
-                if (currentMove.elementAt(i).y > max) max = currentMove.elementAt(i).y;
+                max = currentMove.elementAt(0).y;
+                for (int i=1; i< currentMove.size(); i++)
+                {
+                    if (currentMove.elementAt(i).y > max) max = currentMove.elementAt(i).y;
+                }
             }
-        }
-        else
-        {
-            max = currentMove.elementAt(0).x;
-            for (int i=1; i< currentMove.size(); i++)
+            else
             {
-                if (currentMove.elementAt(i).x > max) max = currentMove.elementAt(i).x;
+                max = currentMove.elementAt(0).x;
+                for (int i=1; i< currentMove.size(); i++)
+                {
+                    if (currentMove.elementAt(i).x > max) max = currentMove.elementAt(i).x;
+                }
             }
         }
         return max;
@@ -194,7 +200,7 @@ public class Board {
                 else end = findMax(m);
                 while (start <=end)
                 {
-                    if (board[start][m.elementAt(0).y].isOccupied()
+                    if (!board[start][m.elementAt(0).y].isOccupied()
                         && !preOccupied(new Position (start, m.elementAt(0).y), m)) return false;
                     start ++;
                 }
