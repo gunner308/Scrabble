@@ -169,7 +169,7 @@ class StartGamePanel extends JPanel{
 			createGameClient(name, true);
 			setVisible(false);
 			
-		}catch (IOException e){
+		}catch (Exception e){
 			e.printStackTrace();
 		}
 	}
@@ -180,6 +180,7 @@ class StartGamePanel extends JPanel{
 		try{
 			Socket skt = md.joinGame(hostName);
 			GameClient client = new GameClient(skt, username, isMaster, mainFrame);
+            client.start();
 		}catch (IOException e){
 			e.printStackTrace();
 			if (hostName == null){
@@ -280,7 +281,7 @@ class HostPanel extends JPanel{
 		Iterator it = gameList.iterator();
 	    while(it.hasNext()){
 	    	String value=(String)it.next();
-	    	System.out.println(value);
+	    	//System.out.println(value);
 	    	JButton b = new JButton(value);
 	    	b.setContentAreaFilled(false);
 	    	//b.setPreferredSize(new Dimension(400, 30));

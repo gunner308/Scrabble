@@ -21,16 +21,20 @@ import scrabble.Player;
 public class PlayerPanel extends JPanel{
 	private Vector<PlayerBoxPanel> players;
 	private Vector<Player> playerList;
+	private Vector<PlayerBoxPanel> panelList;
 	Box box = Box.createHorizontalBox();
 	
 	public PlayerPanel(Vector<Player> _playerList)
 	{
 		playerList = _playerList;
-		System.out.println(playerList.size());
+		//System.out.println(playerList.size());
 		setLayout(new BorderLayout());
 		setOpaque(false);
-		for (Player i: playerList){
-			box.add(new PlayerBoxPanel(i));
+		panelList = new Vector<PlayerBoxPanel>();
+		for (int i = 0; i < 4; i++){
+			PlayerBoxPanel p = new PlayerBoxPanel();
+			panelList.add(p);
+			box.add(p);
 			box.add(Box.createHorizontalStrut(10));
 		}
 		add(box, BorderLayout.WEST);
@@ -67,17 +71,19 @@ public class PlayerPanel extends JPanel{
 		redisplay();
 	}*/
 	
-	public void paintComponent(Graphics g)
+	public void redisplay()
 	{
-		super.paintComponent(g);
-		System.out.println("Painting");
-		System.out.println(playerList.size());
-		box.removeAll();
-		for (Player i: playerList){
-			box.add(new PlayerBoxPanel(i));
-			box.add(Box.createHorizontalStrut(10));
+		System.out.println("So luong player:" + playerList.size());
+		for (PlayerBoxPanel i: panelList){
+			i.setVisible(false);
 		}
-		//this.paintAll(g);
+		int count = 0;
+		for (Player i : playerList){
+			panelList.get(count).setPlayer(i);
+			panelList.get(count).setVisible(true);
+			count++;
+			System.out.println(count);
+		}
 	}
 }
 
@@ -88,50 +94,34 @@ class PlayerBoxPanel extends JPanel{
 	JLabel nameLabel, scoreLabel;
 	boolean isMaster, inTurn, isResigned;
 	int score;
-	Image img; 
+	Image masterImg, img;
+	StatusPanel sttPanel;
 	
-	public PlayerBoxPanel(Player p)
+	public PlayerBoxPanel()
 	{
-		username = p.getUsername();
-		isMaster = p.isMaster();
-		inTurn = p.isInTurn();
-		isResigned = p.resigned();
+		this.setVisible(false);
 		
-		Color c;
-		if (isMaster){
-			c = Color.blue;
-		}else{
-			c = Color.BLACK;
-		}
 		// nameLabel
-		nameLabel = new JLabel(username);
+		nameLabel = new JLabel("");
 		nameLabel.setBounds(10, 5, 150, 30);
 		nameLabel.setFont(new Font("Serif", Font.BOLD, 18));
-		nameLabel.setForeground(c);
+		nameLabel.setForeground(Color.blue);
 		add(nameLabel);
 		// score label
 		score = 0;
-		scoreLabel = new JLabel(score + "");
+		scoreLabel = new JLabel("");
 		scoreLabel.setBounds(100, 40, 50, 30);
 		scoreLabel.setFont(new Font("Serif", Font.BOLD, 23));
 		scoreLabel.setForeground(Color.white);
 		add(scoreLabel);
 		// status
-		if (isResigned){
-			add(new StatusPanel("RESIGN"));
-		}else if (inTurn){
-			add(new StatusPanel("TURN"));
-		}
+		sttPanel = new StatusPanel("");
+		sttPanel.setVisible(false);
 		
-		
-		String location;
-		if (isMaster){
-			location = "images/PLAYERMASTER.png";
-		}else{
-			location = "images/PLAYER.png";
-		}
+	
 		try{
-			img = ImageIO.read(new File(location));
+			masterImg = ImageIO.read(new File("images/PLAYERMASTER.png"));
+			img = ImageIO.read(new File("images/PLAYER.png"));
 		}catch (IOException e){
 			e.printStackTrace();
 		}
@@ -143,16 +133,40 @@ class PlayerBoxPanel extends JPanel{
 	    setLayout(null);
 	}
 	
+	public void setPlayer(Player p)
+	{
+		// nameLabel
+		nameLabel.setText(p.getUsername());
+		// score label
+		score = 0;
+		scoreLabel.setText(p.getScore()+"");
+		// status
+		if (p.resigned()){
+			sttPanel.setText("RESIGN");
+			sttPanel.setVisible(true);
+		}else if (p.isInTurn()){
+			sttPanel.setText("TURN");
+			sttPanel.setVisible(true);
+		}else{
+			sttPanel.setVisible(false);
+		}
+		isMaster = p.isMaster();
+	}
+	
 	public void paintComponent(Graphics g) 
 	{
 	    super.paintComponent(g);
 	    //System.out.println("Paint o player");
-	    g.drawImage(img, 0, 0, WIDTH, HEIGHT, null);
+	    if (isMaster)
+	    	g.drawImage(masterImg, 0, 0, WIDTH, HEIGHT, null);
+	    else
+	    	g.drawImage(img, 0, 0, WIDTH, HEIGHT, null);
 	}
 	
 	class StatusPanel extends JPanel{
 		String text;
 		Image img;
+		JLabel stt;
 		
 		public StatusPanel(String t)
 		{
@@ -162,9 +176,14 @@ class PlayerBoxPanel extends JPanel{
 			}catch (IOException e){
 				e.printStackTrace();
 			}
-			JLabel l = new JLabel(text);
-			l.setBounds(5, 5, 50, 30);
-			add(l);
+			stt = new JLabel(text);
+			stt.setBounds(5, 5, 50, 30);
+			add(stt);
+		}
+		
+		public void setText(String s)
+		{
+			stt.setText(s);
 		}
 		
 		public void paintComponent(Graphics g) 

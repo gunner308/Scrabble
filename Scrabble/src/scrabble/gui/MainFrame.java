@@ -72,7 +72,13 @@ public final class MainFrame extends JFrame {
 	// redisplay the screen
 	public void redisplay()
 	{
-		this.paintAll(this.getGraphics());
+		if (status == STATUS.IN_ROOM){
+			inGamePanel.redisplay();
+		}
+		else{
+			startGamePanel.repaint();
+		}
+	//	this.paintAll(this.getGraphics());
 	}
 	
 	/**

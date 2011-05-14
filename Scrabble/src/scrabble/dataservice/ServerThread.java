@@ -23,13 +23,14 @@ public class ServerThread extends Thread {
     private String username;
     private static Vector<Socket> clientSocketList = new Vector<Socket>();
     private static boolean lockWrite;
-
+    private boolean myTurn;
     public ServerThread(Game _game, Socket _skt) throws IOException
     {
         game = _game;
         skt = _skt;
         inFromClient = new BufferedReader(new InputStreamReader(skt.getInputStream()));
         outToClient = new DataOutputStream(skt.getOutputStream());
+        myTurn = false;
     }
     
     /* DEBUGGING */
@@ -91,7 +92,7 @@ public class ServerThread extends Thread {
     }
     public void welcome () throws IOException
     {
-        String line = inFromClient.readLine();
+        String line;
         while (true)
         {
             if ((clientSocketList.size() > 3) || game.isStarted())
@@ -116,7 +117,6 @@ public class ServerThread extends Thread {
                 continue; 
             }
             username = temp[1];
-            System.out.println("Size" + game.getPlayerList().size());
             for (int i=0; i < game.getPlayerList().size(); i++)
             {
                 outToClient.writeBytes("JOIN " + game.getPlayerList().elementAt(i).getUsername() + "\n");
@@ -128,20 +128,21 @@ public class ServerThread extends Thread {
             break;
         }
     }
-    public void resignHandler()
+    private void resignHandler()
     {
         game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setResign(true);
         outToAll ("SURRENDER" + username + "\n", clientSocketList.indexOf(skt));
         outToAll("TURN "+ game.nextTurn() + "\n", -1);
         //fixTurn (j);
     }
-    public void quitHandler()
+    private void quitHandler()
     {
         outToAll ("QUIT" + username + "\n", clientSocketList.indexOf(skt));
         game.getPlayerList().removeElementAt(clientSocketList.indexOf(skt));
         clientSocketList.remove(skt);
         outToAll("TURN "+ game.nextTurn() + "\n", -1);
     }
+    
     public void controlInRoom () throws IOException
     {
         String line;
@@ -174,7 +175,7 @@ public class ServerThread extends Thread {
                         {
                             game.startGame();
                             game.setGameStt(true);
-                            String str = "START";
+                            String str = "START\n";
                             outToAll(str, -1);
                             break;
                         }
@@ -183,7 +184,7 @@ public class ServerThread extends Thread {
                             outToClient.writeBytes("ERROR 3");
                         }
                     }
-                    if (!line.startsWith("START") && !line.startsWith("CHAT"))
+                    if (!line.startsWith("START"))
                     {
                         outToClient.writeBytes("ERROR -1");
                     }
@@ -191,75 +192,99 @@ public class ServerThread extends Thread {
             }
         }
     }
+    
     public void controlInPlay () throws IOException
     {
         long timing=0;
         String line;
-        outToAll ("TURN" + game.nextTurn() + "\n", -1);
+        if (username == game.nexTurn()) outToAll ("TURN " + username + "\n", -1);
         while (true)
         {
-            if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true) 
-                break;
-            
-            
+            if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true
+                && username == game.getTurn())
+                outToAll("TURN " + game.nextTurn() + "\n", -1);
             timing = System.currentTimeMillis();
             if (inFromClient.ready()
                 && !game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned())
             {
-                timing = System.currentTimeMillis();
                 line = inFromClient.readLine();
-                if (line.startsWith("PLACE"))
+                if (username == game.getTurn())
                 {
-                    String []s = line.split(" ");
-                    LetterMove letterMove = new LetterMove (s[1], s[2], s[3]);
-                    game.updateMove(letterMove);
-                    outToAll (line + "\n", clientSocketList.indexOf(skt));
-                }
-                if (line.startsWith("REMOVE"))
-                {
-                    outToAll (line + "\n", clientSocketList.indexOf(skt));
-                }
-                if (line.startsWith("SUBMIT"))
-                {
-                    if (game.checkWord())
+                    timing = System.currentTimeMillis();
+                    if (line.startsWith("PLACE"))
                     {
-                        outToAll("ACCEPT\n", -1);
-                        outToClient.writeBytes("SET_SCORE" + game.calculateScore());
+                        String []s = line.split(" ");
+                        LetterMove letterMove = new LetterMove (s[1], s[2], s[3]);
+                        game.updateMove(letterMove);
+                        outToAll (line + "\n", clientSocketList.indexOf(skt));
+                    }
+                    if (line.startsWith("REMOVE\n"))
+                    {
+                        outToAll (line + "\n", clientSocketList.indexOf(skt));
+                    }
+                    if (line.startsWith("SUBMIT\n"))
+                    {
+                        if (game.checkWord())
+                        {
+                            outToAll("ACCEPT\n", -1);
+                            outToClient.writeBytes("SET_SCORE" + game.calculateScore());
+                            outToAll("TURN "+ game.nextTurn() + "\n", -1);
+                        }
+                        else outToClient.writeBytes("REFUSE\n");
+                    }
+                    if (line.startsWith("EXCHANGE"))
+                    {
+                        Vector <Tile> exchange = game.exchangeRack();
+                        for (int i=0; i< exchange.size(); i++)
+                        {
+                            outToClient.writeBytes("TILE" + exchange.elementAt(i).getID() +"\n");
+                        }
                         outToAll("TURN "+ game.nextTurn() + "\n", -1);
                     }
-                    else outToClient.writeBytes("REFUSE" +"\n");
-                }
-                if (line.startsWith("EXCHANGE"))
-                {
-                    Vector <Tile> exchange = game.exchangeRack();
-                    for (int i=0; i< exchange.size(); i++)
+                    if (line.startsWith("PASS"))
                     {
-                        outToClient.writeBytes("TILE" + exchange.elementAt(i).getID() +"n");
+                        outToAll("TURN " + game.nextTurn() + "\n", -1);
                     }
-                    outToAll("TURN "+ game.nextTurn() + "\n", -1);
-                }
-                if (line.startsWith("PASS"))
-                {
-                    outToAll("TURN " + game.nextTurn() + "\n", -1);
-                }
-                if (line.startsWith("SURRENDER"))
-                {
-                    resignHandler();
-                }
-                if (line.startsWith("QUIT"))
-                {
-                    if (!isMaster)
+                    if (line.startsWith("SURRENDER"))
                     {
-                        quitHandler();
+                        resignHandler();
                         break;
                     }
-                    else
+                    if (line.startsWith("QUIT"))
                     {
-                        masterQuit = true;
-                        break;
+                        if (!isMaster)
+                        {
+                            quitHandler();
+                            break;
+                        }
+                        else
+                        {
+                            masterQuit = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (line.startsWith("SURRENDER"))
+                    {
+                        resignHandler();
+                    }
+                    if (line.startsWith("QUIT"))
+                    {
+                        if (!isMaster)
+                        {
+                            quitHandler();
+                        }
+                        else
+                        {
+                            masterQuit = true;
+                            break;
+                        }
                     }
                 }
             }
+            
             Vector <Tile> tiles = game.getNewTiles();
             for (int i=0; i< tiles.size(); i++)
             {

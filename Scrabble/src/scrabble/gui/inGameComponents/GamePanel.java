@@ -235,17 +235,11 @@ public class GamePanel extends JPanel{
 			this.addMouseListener(new MyMouseListener(this));
 		}
 		
-		public void painComponent(Graphics g)
-		{
-			super.paintComponent(g);	
-		}
-		
 		public void setTile(Tile _tile)
 		{
 			tile = _tile;
 			try{
 				String s = "images/"+tile.getLetter()+".png";
-				System.out.println(s);
 				Image img = ImageIO.read(new File("images/letter/"+tile.getLetter()+".png"));
 				img = img.getScaledInstance(SIZE, SIZE, Image.SCALE_AREA_AVERAGING);
 				setIcon(new ImageIcon(img));
@@ -274,8 +268,7 @@ public class GamePanel extends JPanel{
 		
 		public void mousePressed(MouseEvent e) 
 		{
-			//if (b.tile == null && !isOldTile(b.x, b.y)){
-			if (b.tile != null){
+			if (client.isTurn() && b.tile != null && !isOldTile(b.x, b.y)){
 				currentTile = b.tile;
 				sourceButton = b;
 				Image cursorImage = toolkit.getImage("images/letter/" + b.tile.getLetter() +".png");
@@ -288,13 +281,13 @@ public class GamePanel extends JPanel{
 		}
 		public void mouseReleased(MouseEvent e) 
 		{
-			System.out.printf("%d %d\n", b.x, b.y);
+			//System.out.printf("%d %d\n", b.x, b.y);
 		    if (currentButton.tile == null){
 		    	if (currentTile != null){
 		    		currentButton.setTile(currentTile);
 		    	}
 		    	sourceButton = null;
-		    }else{
+		    }else if (sourceButton != null){
 		    	sourceButton.setTile(currentTile);
 		    }
 		    currentTile = null;

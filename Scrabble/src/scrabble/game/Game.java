@@ -21,6 +21,9 @@ public class Game {
     {
     	board = new Board();
     	dictionary = new MyDictionary();
+        playerList = new Vector();
+        currentMove = new Vector();
+        startPos = new Vector();
     	bag = new Bag();
         isStarted = false;
         turn = -1;
@@ -41,6 +44,8 @@ public class Game {
 
         return (count>1);
     }
+    
+    
 
     public boolean checkWord()
     {
@@ -57,7 +62,8 @@ public class Game {
 
     public boolean canStart()
     {
-        return true;
+        
+        return (playerList.size()>=1);
     }
 
     public boolean isStarted()
@@ -104,6 +110,13 @@ public class Game {
         {
             while (playerList.elementAt((turn++) % playerList.size()).resigned());
         }
+        System.out.println("Turn: " + turn);
+        return playerList.elementAt(turn).getUsername();
+        //return playerList.elementAt(0).getUsername();
+    }
+    
+    public String getTurn()
+    {
         return playerList.elementAt(turn).getUsername();
     }
 

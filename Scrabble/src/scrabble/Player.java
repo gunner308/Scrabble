@@ -58,9 +58,19 @@ public class Player {
     	return inTurn;
     }
     
+    public void setTurn(boolean b)
+    {
+    	inTurn = b;
+    }
+    
     public boolean isMaster()
     {
     	return isMaster;
+    }
+    
+    public int getScore()
+    {
+    	return score;
     }
 
 

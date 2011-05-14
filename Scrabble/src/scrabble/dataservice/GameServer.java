@@ -18,24 +18,7 @@ public class GameServer extends Thread{
     	serverSocket = new ServerSocket (port);
     	game = new Game();
     	serverSocket.setReuseAddress(true);
-    	System.out.println("Game server started successfully.");
-    }
-
-    /**
-     * Listen to the specified port number, wait for clients to connect.
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    public void listen()throws IOException, InterruptedException{
-    	while (true){
-    		// avoid resources getting exhausted
-    		Thread.sleep(100);
-    		
-    		// keep listening for client messages
-    		Socket skt = serverSocket.accept();
-    		System.out.println("Someone is coming in...");
-    		new ServerThread(game, skt).start();
-    	}
+    	//System.out.println("Game server started successfully.");
     }
     
     public void finish()
@@ -47,7 +30,19 @@ public class GameServer extends Thread{
     	}
     }
 
-    public static void main(String args[]) throws IOException, InterruptedException{
-   		new GameServer(6789).listen();
+    public void run()
+    {
+        while (true){
+            try{
+            	Thread.sleep(100);
+	    		Socket skt = serverSocket.accept();
+	    		System.out.println("Someone is coming in...");
+	    		new ServerThread(game,skt).start();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+    	}
     }
 }
