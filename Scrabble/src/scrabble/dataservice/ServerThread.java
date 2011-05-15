@@ -298,7 +298,7 @@ public class ServerThread extends Thread {
                         {
                             System.out.println("server: this is a correct move");
                             outToAll("ACCEPT\n", -1);
-                            outToClient.writeBytes("SET_SCORE" + game.calculateScore());
+                            outToClient.writeBytes("SET_SCORE " + game.calculateScore());
                             outToAll("TURN "+ game.nextTurn() + "\n", -1);
                         }
                         else 
@@ -309,10 +309,10 @@ public class ServerThread extends Thread {
                     }
                     if (line.startsWith("EXCHANGE"))
                     {
-                        Vector <Tile> exchange = game.exchangeRack();
+                        Vector <Tile> exchange = new Vector(game.exchangeRack());
                         for (int i=0; i< exchange.size(); i++)
                         {
-                            outToClient.writeBytes("TILE" + exchange.elementAt(i).getID() +"\n");
+                            outToClient.writeBytes("TILE " + exchange.elementAt(i).getID() +"\n");
                         }
                         outToAll("TURN "+ game.nextTurn() + "\n", -1);
                     }
