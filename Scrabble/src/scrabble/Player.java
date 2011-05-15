@@ -6,7 +6,7 @@ import scrabble.game.Tile;
 public class Player {
     String username;
     int score;
-    Vector<Tile> rack;
+    public Vector<Tile> rack;
     boolean resign;
     boolean inTurn;
     boolean isMaster;

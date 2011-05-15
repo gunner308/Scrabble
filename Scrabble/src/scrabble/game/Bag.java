@@ -38,7 +38,9 @@ public class Bag {
     	int n;
     	while (!isEmpty() && rack.size() < 7){
     		n = generator.nextInt(getNumTileLeft());
-    		rack.add(new Tile(tileList.elementAt(n)));
+                Tile t = new Tile(tileList.elementAt(n));
+    		rack.add(t);
+                System.out.println("bag: get new tile " + t.id);
     		tileList.remove(n);
     	}
     }
@@ -51,6 +53,13 @@ public class Bag {
     	}
     	rack.clear();
     	fillRack(rack);
+    }
+
+    public void takeBack(Vector<Tile> rack)
+    {
+        for (int i = 0; i < rack.size(); i++){
+            tileList.add(new Tile(rack.elementAt(i)));
+    	}
     }
     
     // check whether the bag is empty

@@ -32,7 +32,7 @@ public class Board {
     	 {0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0,},
     	 {0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0,},
     	 {0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0,},
-    	 {4, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4,},
+    	 {4, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 1, 0, 0, 4,},
     	 {0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0,},
     	 {0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0,},
     	 {0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0,},
@@ -390,33 +390,32 @@ public class Board {
             for (int i=0; i<m.size(); i++)
             {
                 String tmp = "";
-                int it = m.elementAt(0).x - 1;
-                while (it >= 0 && board[it][m.elementAt(i).y].isOccupied())
+                int it = m.elementAt(i).x;
+                int y = m.elementAt(i).y;
+                while (it > 0 && board[it-1][y].isOccupied())
                 {
-                    tmp += board[it][m.elementAt(i).y].tile.letter;
-                    if ((it>0 && 
-                        !board[it-1][m.elementAt(i).y].isOccupied()) || it==0) 
-                    {
-                        Position p = new Position (it, m.elementAt(i).y);
-                        initPos.add(p);
-                    }
                     it--;
                 }
-                for (int j=tmp.length()-1; j>=0; j--)
+                initPos.add(new Position(it, y));
+                while (it < 15 && board[it][y].isOccupied() || preOccupied(new Position(it, y), m))
                 {
-                    s += tmp.charAt(j);
+                    if (board[it][y].isOccupied()) tmp += board[it][y].getTile().letter;
+                    else
+                    {
+                        for (int j=0; j<m.size(); j++)
+                        {
+                            if (m.elementAt(j).y ==y && m.elementAt(j).x == it)
+                            {
+                                tmp += m.elementAt(j).tile.letter;
+                            }
+                        }
+                    }
+                    it++;
                 }
-                int j = m.elementAt(i).x;
-                while (j<size && board[j][m.elementAt(i).y].isOccupied())
+                if (tmp.length()>1)
                 {
-                    s += board[j][m.elementAt(i).y].tile.letter;
-                    j++;
+                    wordsToCheck.add(tmp.toLowerCase());
                 }
-            }
-            if (!s.trim().equals("") && s != null)
-            {
-                System.out.println("board: add string " + s + "-");
-                wordsToCheck.add(s.toLowerCase());
             }
         }
         //vertical
@@ -425,33 +424,32 @@ public class Board {
             for (int i=0; i<m.size(); i++)
             {
                 String tmp = "";
-                int it = m.elementAt(i).y - 1;
-                while (i >= 0 && board[m.elementAt(i).x][it].isOccupied())
+                int it = m.elementAt(i).y;
+                int x = m.elementAt(i).x;
+                while (it > 0 && board[x][it-1].isOccupied())
                 {
-                    tmp += board[m.elementAt(i).x][it].tile.letter;
-                    if ((it>0 && 
-                        !board[m.elementAt(i).x][it-1].isOccupied()) || it==0) 
-                    {
-                        Position p = new Position (m.elementAt(i).x, it);
-                        initPos.add(p);
-                    }
                     it--;
                 }
-                for (int j=tmp.length()-1; j>=0; j--)
+                initPos.add(new Position(x, it));
+                while (it < 15 && board[x][it].isOccupied() || preOccupied(new Position(x, it), m))
                 {
-                    s += tmp.charAt(j);
+                    if (board[x][it].isOccupied()) tmp += board[x][it].getTile().letter;
+                    else
+                    {
+                        for (int j=0; j<m.size(); j++)
+                        {
+                            if (m.elementAt(j).x == x && m.elementAt(j).y == it)
+                            {
+                                tmp += m.elementAt(j).tile.letter;
+                            }
+                        }
+                    }
+                    it++;
                 }
-                int j = m.elementAt(0).y;
-                while (j<size && board[m.elementAt(i).x][j].isOccupied())
+                if (tmp.length()>1)
                 {
-                    s += board[m.elementAt(i).x][j].tile.letter;
-                    j++;
+                    wordsToCheck.add(tmp.toLowerCase());
                 }
-            }
-            if (!s.trim().equals("") && s != null)
-            {
-                System.out.println("board: add string " + s + "-");
-                wordsToCheck.add(s.toLowerCase());
             }
         }
     }

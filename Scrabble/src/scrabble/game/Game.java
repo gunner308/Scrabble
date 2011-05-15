@@ -39,10 +39,10 @@ public class Game {
         int count = 0;
         for (int i=0; i<playerList.size(); i++)
         {
-            if (playerList.elementAt(i).resigned()) count++;
+            if (!playerList.elementAt(i).resigned()) count++;
         }
-
-        return (count>1);
+        System.out.println("game: there are " + count + " player");
+        return (count<2);
     }
 
     public boolean checkWord()
@@ -110,13 +110,13 @@ public class Game {
     public Vector<Tile> getNewTiles()
     {
         int size = playerList.elementAt(turn).getRack().size();
-        //System.out.println("game: player " + turn + " has " + size + " tiles");
+        System.out.println("game: player " + turn + " has " + size + " tiles");
         bag.fillRack(playerList.elementAt(turn).getRack());
         Vector<Tile> newTiles = new Vector();
         Vector<Tile> rack = playerList.elementAt(turn).getRack();
-        for (int i=size; i<rack.size(); i++)
+        for (int i=size; i<playerList.elementAt(turn).getRack().size(); i++)
         {
-            newTiles.add(rack.elementAt(i));
+            newTiles.add(playerList.elementAt(turn).getRack().elementAt(i));
         }
 
         if (newTiles.size()>0)
@@ -214,19 +214,28 @@ public class Game {
         point = marking(words.elementAt(0), startPos.elementAt(0), dir, 1);
         for (int i=1; i<words.size(); i++)
         {
-            point += marking(words.elementAt(i), startPos.elementAt(0), 3-dir, 0);
+            point += marking(words.elementAt(i), startPos.elementAt(i), 3-dir, 0);
         }
     	return point;
     }
 
     public Vector<Tile> exchangeRack()
     {
+        currentMove.clear();
         bag.exchangeRack(playerList.elementAt(turn).getRack());
         return playerList.elementAt(turn).getRack();
     }
 
     public void updateMove(LetterMove move)
     {
+        for (Tile t : playerList.elementAt(turn).getRack())
+        {
+            if (t.letter == move.tile.letter)
+            {
+                playerList.elementAt(turn).getRack().remove(t);
+                break;
+            }
+        }
         currentMove.add(move);
     }
 
@@ -238,8 +247,28 @@ public class Game {
             if (currentMove.elementAt(i).x == move.x && currentMove.elementAt(i).y == move.y)
             {
                 System.out.println("game: remove " + currentMove.elementAt(i).tile.letter);
+                playerList.elementAt(turn).getRack().add(currentMove.elementAt(i).tile);
                 currentMove.remove(i);
             }
         }
+    }
+
+    public void clearMove()
+    {
+        currentMove.clear();
+    }
+
+    public void reInsertMove()
+    {
+        for (int i=0; i<currentMove.size(); i++)
+        {
+            playerList.elementAt(turn).getRack().add(currentMove.elementAt(i).tile);
+            currentMove.remove(i);
+        }
+    }
+
+    public void takeBack()
+    {
+        bag.takeBack(playerList.elementAt(turn).getRack());
     }
 }
