@@ -124,7 +124,7 @@ public class Board {
         {
             if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
             {
-                System.out.println("board: check ngang");
+                //System.out.println("board: check ngang");
                 for (int i=2; i<currentMove.size(); i++)
                 {
                     if (currentMove.elementAt(i).x != currentMove.elementAt(0).x) 
@@ -132,7 +132,7 @@ public class Board {
                         return 0;
                     }
                 }
-                System.out.println("board: ngang");
+                //System.out.println("board: ngang");
                 return 1;
             }
             else if (currentMove.elementAt(0).y == currentMove.elementAt(1).y)
@@ -208,11 +208,11 @@ public class Board {
                 if (end<14)
                     if (board[x][end+1].isOccupied()) ans = true;
                 
-                System.out.println("board: start - " + start + " end - " + end);
+                //System.out.println("board: start - " + start + " end - " + end);
 
                 while (start <= end)
                 {
-                    System.out.println ("vao while ngang");
+                    //System.out.println ("vao while ngang");
                     if (board[x][start].isOccupied()) ans = true;
                     if (x>0)
                         if (board[x-1][start].isOccupied()) ans = true;
@@ -222,7 +222,7 @@ public class Board {
                     if (!board[x][start].isOccupied()
                         && !preOccupied(new Position (x, start), m))
                         {
-                            System.out.println ("board: false x " + x + "-" +start);
+                            //System.out.println ("board: false x " + x + "-" +start);
                             return false;
                         }
                     start ++;
@@ -241,11 +241,11 @@ public class Board {
                 if (end<14)
                     if (board[end+1][y].isOccupied()) ans = true;
 
-                System.out.println("board: start - " + start + " end - " + end);
+                //System.out.println("board: start - " + start + " end - " + end);
 
                 while (start <= end)
                 {
-                    System.out.println ("vao while ngang");
+                    //System.out.println ("vao while ngang");
                     if (board[start][y].isOccupied()) ans = true;
                     if (y>0)
                         if (board[start][y-1].isOccupied()) ans = true;
@@ -255,7 +255,7 @@ public class Board {
                     if (!board[start][y].isOccupied()
                         && !preOccupied(new Position (start,y), m))
                         {
-                            System.out.println ("board: false y " + start + "-" + y);
+                            //System.out.println ("board: false y " + start + "-" + y);
                             return false;
                         }
                     start ++;
@@ -270,22 +270,22 @@ public class Board {
     {
         if (isOneLine(currentMove) == 0) 
         {
-            System.out.println ("one line bang 0");
+            //System.out.println ("one line bang 0");
             return 0;
         }     
         else
         {
-            System.out.println ("one line khac 0");
+            //System.out.println ("one line khac 0");
             if (checkConnected(currentMove)) 
             {
-                System.out.println ("connected");
+                //System.out.println ("connected");
                 int x = isOneLine(currentMove);
-                System.out.println ("return: "+ x);
+                //System.out.println ("return: "+ x);
                 return x;
             }//if connect
             else 
             {
-                System.out.println ("not connected");
+                //System.out.println ("not connected");
                 return 0;
             }//not connect
         }
@@ -456,16 +456,16 @@ public class Board {
     public Vector<String> getWords (Vector <LetterMove> currentMove)
     {
         wordsToCheck.clear();
-        System.out.println ("Size vector words truoc: "+wordsToCheck.size());
+        //System.out.println ("Size vector words truoc: "+wordsToCheck.size());
         makeMainWord(currentMove); 
         makeSecondaryWord(currentMove);
-        System.out.println ("Size vector words sau: "+wordsToCheck.size());
+        //System.out.println ("Size vector words sau: "+wordsToCheck.size());
         return wordsToCheck;
     }
     public Vector <Position> getPos (Vector<LetterMove> currentMove)
     {
         Vector <Position> res = new Vector(initPos);
-        System.out.println("board: initPos's size " + initPos.size());
+        //System.out.println("board: initPos's size " + initPos.size());
         initPos.clear();
         return res;
     }

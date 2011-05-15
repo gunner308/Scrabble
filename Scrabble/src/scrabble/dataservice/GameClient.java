@@ -190,6 +190,7 @@ public class GameClient extends Thread {
 	/* Move Processing : place letter, remove letter from board, submit Word */
 	public void placeLetter(int tileID, int x, int y) {
 		LetterMove tempMove = new LetterMove(x, y, tileID);
+                if (this.isTurn())
                 for (Tile t: player.getRack())
                 {
                     if (t.getID() == tileID)
@@ -209,6 +210,7 @@ public class GameClient extends Thread {
 	}
 
 	public void removeLetter(int x, int y) {
+                if (this.isTurn())
 		for (LetterMove i:currentMove){
 			if (i.x == x && i.y == y)
                         {
