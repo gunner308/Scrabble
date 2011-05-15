@@ -138,9 +138,10 @@ public class GameClient extends Thread {
 
 	/* Check if "my" player is in turn or not */
 	public boolean isTurn() {
-            if (currentPlayer == null) return false;
 		if ( currentPlayer.getUsername().compareTo(player.getUsername()) == 0 ) return true;
 		return false;
+
+
 	}
 
 
@@ -187,21 +188,30 @@ public class GameClient extends Thread {
 	}
 	/* Move Processing : place letter, remove letter from board, submit Word */
 	public void placeLetter(int tileID, int x, int y) {
-            System.out.println ("GUI PLACE");
 		LetterMove tempMove = new LetterMove(x, y, tileID);
 		currentMove.add(tempMove);
+	}
+	
+	public void callPlaceLetter(int tileID, int x, int y)
+	{
+		placeLetter(tileID, x, y);
 		String message = "PLACE " + tileID + " " + x + " " + y + "\n";
 		sendMessage(message);
 	}
 
 	public void removeLetter(int x, int y) {
-		String message = "REMOVE" + " " + x + " " + y + "\n";
 		for (LetterMove i:currentMove){
 			if (i.x == x && i.y == y){
 				currentMove.remove(i);
 				break;
 			}
 		}
+	}
+	
+	public void callRemoveLetter(int x, int y)
+	{
+		removeLetter(x, y);
+		String message = "REMOVE" + " " + x + " " + y + "\n";
 		sendMessage(message);
 	}
 
@@ -219,6 +229,7 @@ public class GameClient extends Thread {
 			//GUI.redisplay();
 			currentMove.clear();
 			GUI.displayMessage("You have submitted successfully.");
+			GUI.redisplay();
 		}
 
 		else if ( getCommand.startsWith("REFUSE")) {
@@ -234,8 +245,6 @@ public class GameClient extends Thread {
 	{
 		try
 		{
-			sendMessage("QUIT" + player.getUsername() + "\n");
-
 			inFromUser.close();
 			inFromServer.close();
 			outToServer.close();
@@ -286,20 +295,16 @@ public class GameClient extends Thread {
 
 		int tileOnBoard = 0;
 		for (int i = 0; i < size; i ++) {
-
 			for ( int j = 0; j < size; j ++)    {
-
 				Square thisSquare = board.getSquare(i, j);
 				if ( thisSquare.isOccupied() ) tileOnBoard ++;
 			}
 		}
 		int tileOnHands = 0;
-
-		for ( int i = 0; i < playerList.size(); i ++ )  {
-
+		tileOnHands = 7*playerList.size();
+		/*for ( int i = 0; i < playerList.size(); i ++ )  {
 			tileOnHands += playerList.get(i).getRack().size();
-
-		}
+		}*/
 		//System.out.println(tileOnBoard);
 	//	System.out.println(tileOnHands);
 		int tileOnBag = 100 - tileOnBoard - tileOnHands;
@@ -316,7 +321,6 @@ public class GameClient extends Thread {
 
 	public void closeSocket() {
 		stop = true;
-
 		try{
 			skt.close();
 			// TO DO: server stop
@@ -332,7 +336,7 @@ public class GameClient extends Thread {
 	//	System.out.println("PREPARATION");
 		String getCommand = "";
 		while ( !stop ) {
-
+			pause(100);
 			getCommand = inFromServer.readLine();
 			System.out.println("Command: " + getCommand);
 
@@ -364,8 +368,9 @@ public class GameClient extends Thread {
 			else if(getCommand.startsWith("ERROR"))  {
 
 				String errorMessage = "Room is already full";
-				GUI.displayMessage(errorMessage);
 				this.closeSocket();
+				GUI.setStartGameScreen();
+				GUI.displayMessage("The room is full.");
 				return false;
 			}
 
@@ -399,17 +404,21 @@ public class GameClient extends Thread {
 					setCurrentPlayer(currentPlayerName);
 					
 					GUI.startTurn(currentPlayerName);
-					GUI.displayMessage(currentPlayerName + " is in turn.");
+					currentMove.clear();
+					if (this.isTurn())
+						GUI.displayMessage("You are in turn");
+					else
+						GUI.displayMessage(currentPlayerName + " is in turn.");
 					GUI.redisplay();
 				}
 
 				else if(getCommand.startsWith("PLACE"))  {
 					if (!this.isTurn()){
-						System.out.println("Vao place");
 						int tileID = Integer.parseInt(getCommand.split(" ")[1]);
 						int x = Integer.parseInt(getCommand.split(" ")[2]);
 						int y = Integer.parseInt(getCommand.split(" ")[3]);
 						placeLetter(tileID, x, y);
+						GUI.redisplay();
 					}
 				}
 				else if(getCommand.startsWith("REMOVE"))  {
@@ -417,6 +426,7 @@ public class GameClient extends Thread {
 						int x = Integer.parseInt(getCommand.split(" ")[1]);
 						int y = Integer.parseInt(getCommand.split(" ")[2]);
 						removeLetter(x, y);
+						GUI.redisplay();
 					}
 				}
 				else if(getCommand.startsWith("MESSAGE"))  {
@@ -431,10 +441,10 @@ public class GameClient extends Thread {
 					int tileID = Integer.parseInt(strTileID);
 					receiveLetter(tileID);
 					receivedTile = receivedTile + Constants.tileLetter[tileID];
-					GUI.redisplay();
 					if (player.getRack().size() == 7){
 						GUI.displayMessage("Receiced tiles: " + receivedTile);
 						receivedTile = "";
+						GUI.redisplay();
 					}
 				}
 				else if(getCommand.startsWith("SET_SCORE"))  {
@@ -519,6 +529,11 @@ public class GameClient extends Thread {
 	public boolean hasStarted()
 	{
 		return hasStarted;
+	}
+	
+	public Vector<LetterMove> getCurrentMove()
+	{
+		return currentMove;
 	}
 
 	/*

@@ -40,6 +40,7 @@ public final class MainFrame extends JFrame {
 	public void setStartGameScreen()
 	{
 		if (inGamePanel != null){
+			inGamePanel.close();
 			inGamePanel.setVisible(false);
 		}
 		
@@ -50,8 +51,8 @@ public final class MainFrame extends JFrame {
 			startGamePanel.closeServer();
 			startGamePanel.setVisible(true);
 		}
-		redisplay();
 		status = STATUS.LOGIN;
+		redisplay();
 	}
 	
 	// change the screen into in game screen
@@ -62,11 +63,15 @@ public final class MainFrame extends JFrame {
 		}
 		client = _client;
 	
-		inGamePanel = new InGamePanel(this, client);
+		if (inGamePanel == null){
+			inGamePanel = new InGamePanel(this, client);
+			add(inGamePanel);
+		}else{
+			inGamePanel.set(client);
+		}
 		inGamePanel.setVisible(true);
-		add(inGamePanel);
-		redisplay();
 		status = STATUS.IN_ROOM;
+		redisplay();
 	}
 	
 	// redisplay the screen

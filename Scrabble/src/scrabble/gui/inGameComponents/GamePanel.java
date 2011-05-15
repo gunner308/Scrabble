@@ -44,7 +44,7 @@ public class GamePanel extends JPanel{
 	private TileButton sourceButton;
 	private TileButton currentButton;
 	private Toolkit toolkit;
-	private Vector<LetterMove> currentMove = new Vector<LetterMove>();
+	private Vector<LetterMove> currentMove;
 	
 	public GamePanel(){}
 	
@@ -53,6 +53,7 @@ public class GamePanel extends JPanel{
 		client = _client;
 		player = client.getPlayer();
 		board = client.getBoard();
+		currentMove = client.getCurrentMove();
 		setLayout(null);
 		
 		toolkit = Toolkit.getDefaultToolkit();
@@ -157,7 +158,7 @@ public class GamePanel extends JPanel{
 	public void redisplay()
 	{
 		tilePanel.updateRack();
-		boardPanel.repaint();
+		boardPanel.update();
 		tileLeftPanel.repaint();
 	}
 	
@@ -197,6 +198,7 @@ public class GamePanel extends JPanel{
 	
 	// panel contains board
 	class BoardPanel extends JPanel{
+		private TileButton B[][] = new TileButton[15][15];
 		
 		public BoardPanel()
 		{
@@ -218,9 +220,28 @@ public class GamePanel extends JPanel{
 					img = ImageIO.read(new File("images/"+s.getType()+".png"));
 				}
 				TileButton b = new TileButton(i, j, s.getType(), img, SQUARE_SIZE);
+				B[i][j] = b;
 				this.add(b);
 			}catch (IOException e){
 				e.printStackTrace();
+			}
+		}
+		
+		public void update()
+		{
+			for (int i = 0; i < 15; i++){
+				for (int j = 0; j < 15; j++){
+					if (board.getSquare(i, j).isOccupied()){
+						B[i][j].setTile(board.getSquare(i, j).getTile());
+					}else if (B[i][j].tile != null){
+						B[i][j].removeTile();
+					}
+				}
+			}
+			currentMove = client.getCurrentMove();
+			for (LetterMove i:currentMove){
+				System.out.println(i.x + " " + i.y);
+				B[i.x][i.y].setTile(i.getTile());
 			}
 		}
 	}
@@ -285,7 +306,7 @@ public class GamePanel extends JPanel{
 		{
 			if (client.isTurn() && b.tile != null){
 				//System.out.println("Vao dc vong 1");
-				//if (b.type == -1 || !isOldTile(b.x, b.y)){
+				if (b.type == -1 || !isOldTile(b.x, b.y)){
 					currentTile = b.tile;
 					sourceButton = b;
 					Image cursorImage = toolkit.getImage("images/letter/" + b.tile.getLetter() +".png");
@@ -294,7 +315,7 @@ public class GamePanel extends JPanel{
 					Cursor customCursor = toolkit.createCustomCursor(cursorImage, cursorHotSpot, "");
 					setCursor(customCursor);
 					b.removeTile();
-				//}
+				}
 			}
 		}
 		public void mouseReleased(MouseEvent e) 
@@ -305,10 +326,10 @@ public class GamePanel extends JPanel{
 		    if (currentButton.tile == null){
 		    	if (currentTile != null){
 		    		if (sourceButton.type != -1){
-		    			client.removeLetter(sourceButton.x, sourceButton.y);
+		    			client.callRemoveLetter(sourceButton.x, sourceButton.y);
 		    		}
 		    		if (currentButton.type != -1){
-		    			client.placeLetter(currentTile.getID(), currentButton.x, currentButton.y);
+		    			client.callPlaceLetter(currentTile.getID(), currentButton.x, currentButton.y);
 		    		}
 		    		currentButton.setTile(currentTile);
 		    	}

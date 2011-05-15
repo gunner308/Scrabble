@@ -40,37 +40,6 @@ public class PlayerPanel extends JPanel{
 		add(box, BorderLayout.WEST);
 	}
 	
-	/*// add a new player to panel
-	public void addPlayer(String username, boolean isMaster)
-	{
-		PlayerBoxPanel temp = new PlayerBoxPanel(username, isMaster); 
-		players.add(temp);
-		redisplay();
-	}
-	
-	public void removePlayer(String username)
-	{
-		for (PlayerBoxPanel i:players ){
-			if (i.getUsername().equals(username)){
-				players.removeElement(i);
-				break;
-			}
-		}
-		redisplay();
-	}*/
-	
-	//update score of a player
-	/*public void updateScore(String username, int score)
-	{
-		for (PlayerBoxPanel i:players ){
-			if (i.getUsername().equals(username)){
-				i.updateScore(score);
-				break;
-			}
-		}
-		redisplay();
-	}*/
-	
 	public void redisplay()
 	{
 		System.out.println("So luong player:" + playerList.size());
@@ -82,7 +51,6 @@ public class PlayerPanel extends JPanel{
 			panelList.get(count).setPlayer(i);
 			panelList.get(count).setVisible(true);
 			count++;
-			System.out.println(count);
 		}
 	}
 }
@@ -92,7 +60,7 @@ class PlayerBoxPanel extends JPanel{
 	private static int HEIGHT = 75;
 	String username;
 	JLabel nameLabel, scoreLabel;
-	boolean isMaster, inTurn, isResigned;
+	boolean inTurn, isResigned;
 	int score;
 	Image masterImg, img;
 	StatusPanel sttPanel;
@@ -117,10 +85,10 @@ class PlayerBoxPanel extends JPanel{
 		// status
 		sttPanel = new StatusPanel("");
 		sttPanel.setVisible(false);
-		
+		sttPanel.setBounds(10, 42, 50, 25);
+		add(sttPanel);
 	
 		try{
-			masterImg = ImageIO.read(new File("images/PLAYERMASTER.png"));
 			img = ImageIO.read(new File("images/PLAYER.png"));
 		}catch (IOException e){
 			e.printStackTrace();
@@ -143,24 +111,18 @@ class PlayerBoxPanel extends JPanel{
 		// status
 		if (p.resigned()){
 			sttPanel.setText("RESIGN");
-			sttPanel.setVisible(true);
 		}else if (p.isInTurn()){
 			sttPanel.setText("TURN");
-			sttPanel.setVisible(true);
 		}else{
 			sttPanel.setVisible(false);
 		}
-		isMaster = p.isMaster();
+		//isMaster = p.isMaster();
 	}
 	
 	public void paintComponent(Graphics g) 
 	{
 	    super.paintComponent(g);
-	    //System.out.println("Paint o player");
-	    if (isMaster)
-	    	g.drawImage(masterImg, 0, 0, WIDTH, HEIGHT, null);
-	    else
-	    	g.drawImage(img, 0, 0, WIDTH, HEIGHT, null);
+    	g.drawImage(img, 0, 0, WIDTH, HEIGHT, null);
 	}
 	
 	class StatusPanel extends JPanel{
@@ -177,12 +139,16 @@ class PlayerBoxPanel extends JPanel{
 				e.printStackTrace();
 			}
 			stt = new JLabel(text);
-			stt.setBounds(5, 5, 50, 30);
+			int w = 50;
+			int h = 30;
+			stt.setBounds(5, 5, w, h);
+			img.getScaledInstance(w, h, Image.SCALE_AREA_AVERAGING);
 			add(stt);
 		}
 		
 		public void setText(String s)
 		{
+			setVisible(true);
 			stt.setText(s);
 		}
 		
