@@ -213,4 +213,9 @@ public class Game {
     {
         currentMove.add(move);
     }
+
+    public void removeMove(LetterMove move)
+    {
+        currentMove.remove(move);
+    }
 }
