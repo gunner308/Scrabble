@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.Socket;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
@@ -30,6 +31,7 @@ class StartGamePanel extends JPanel{
 	private MulticastDiscoverer md = null;
 	private MulticastAnnouncer ma = null;
 	private GameServer server = null;
+	Image bgimage;
 	
 	String hostName = null;
 	
@@ -46,12 +48,19 @@ class StartGamePanel extends JPanel{
 		addCancelButton();
 		addCreateGameButton();
 		addShowGameButton();	
+		try{
+			bgimage = ImageIO.read(new File("images/background.png"));
+			bgimage = bgimage.getScaledInstance(800, 600, Image.SCALE_AREA_AVERAGING);
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 	
 	private void addPlayerNameBox()
 	{
 		playerNamePanel = new PlayerNamePanel();
 		playerNamePanel.setBounds(15, 15, 400, 75);
+		playerNamePanel.setOpaque(false);
 		add(playerNamePanel);
 	}
 	
@@ -63,6 +72,7 @@ class StartGamePanel extends JPanel{
 		add(hostLabel);
 		hostPanel = new HostPanel(this);
 		hostPanel.setBounds(45, 150, 500, 300);
+	//	hostPanel.setOpaque(false);
 		add(hostPanel);
 	}
 	
@@ -217,6 +227,12 @@ class StartGamePanel extends JPanel{
 			System.out.println("Server finish");
 			server.finish();
 		}
+	}
+	
+	protected void paintComponent(Graphics g) 
+	{
+		super.paintComponent(g);
+	    g.drawImage(bgimage, 0, 0, null);
 	}
 	
 	// destructor

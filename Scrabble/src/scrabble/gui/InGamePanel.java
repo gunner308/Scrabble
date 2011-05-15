@@ -55,7 +55,7 @@ public class InGamePanel extends JPanel{
 		addResignButton();
 		addQuitGameButton();
 		try{
-			bgimage = ImageIO.read(new File("images/background.jpg"));
+			bgimage = ImageIO.read(new File("images/background.png"));
 			bgimage = bgimage.getScaledInstance(800, 600, Image.SCALE_AREA_AVERAGING);
 		}catch(IOException e){
 			e.printStackTrace();
@@ -152,7 +152,7 @@ public class InGamePanel extends JPanel{
 			public void actionPerformed(ActionEvent e)
 			{
                                 //System.out.println("client going to stop\n");
-				client.closeSocket();
+				client.quit();
                                 //System.out.println("client has stopped\n");
 				mainFrame.setStartGameScreen();
 			}

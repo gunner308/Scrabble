@@ -170,7 +170,6 @@ public class ServerThread extends Thread {
                     if (!isMaster)
                     {
                         quitHandler();
-                        break;
                     }
                     else
                     {

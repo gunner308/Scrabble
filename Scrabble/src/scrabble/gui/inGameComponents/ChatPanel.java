@@ -6,6 +6,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -26,7 +27,7 @@ public class ChatPanel extends JPanel{
 		setOpaque(false);
 		scrollPane = new JScrollPane();
 		chatBox = new JTextArea();
-		chatBox.setColumns(22);
+		chatBox.setColumns(18);
 		chatBox.setRows(10);
 		chatBox.setEditable(false);
 		scrollPane.setViewportView(chatBox);
@@ -34,9 +35,12 @@ public class ChatPanel extends JPanel{
 		add(scrollPane);
 
 		chatField = new JTextField(20);
-		chatField.setBounds(0, 330, 250, 30);
+		chatField.setBounds(60, 330, 190, 30);
 		chatField.addKeyListener(new MyKeyListener());
 		add(chatField);
+		JButton b = new JButton("Chat");
+		b.setBounds(0, 330, 60, 30);
+		add(b);
 	}
 	/**
 	 * Scrolldown the chat area

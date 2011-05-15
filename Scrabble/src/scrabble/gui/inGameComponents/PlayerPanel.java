@@ -32,7 +32,7 @@ public class PlayerPanel extends JPanel{
 		setOpaque(false);
 		panelList = new Vector<PlayerBoxPanel>();
 		for (int i = 0; i < 4; i++){
-			PlayerBoxPanel p = new PlayerBoxPanel();
+			PlayerBoxPanel p = new PlayerBoxPanel(i);
 			panelList.add(p);
 			box.add(p);
 			box.add(Box.createHorizontalStrut(10));
@@ -65,21 +65,21 @@ class PlayerBoxPanel extends JPanel{
 	Image masterImg, img;
 	StatusPanel sttPanel;
 	
-	public PlayerBoxPanel()
+	public PlayerBoxPanel(int t)
 	{
 		this.setVisible(false);
 		
 		// nameLabel
 		nameLabel = new JLabel("");
 		nameLabel.setBounds(10, 5, 150, 30);
-		nameLabel.setFont(new Font("Serif", Font.BOLD, 18));
-		nameLabel.setForeground(Color.blue);
+		nameLabel.setFont(new Font("Arial", Font.BOLD, 18));
+		nameLabel.setForeground(Color.black);
 		add(nameLabel);
 		// score label
 		score = 0;
 		scoreLabel = new JLabel("");
 		scoreLabel.setBounds(100, 40, 50, 30);
-		scoreLabel.setFont(new Font("Serif", Font.BOLD, 23));
+		scoreLabel.setFont(new Font("Courier New", Font.BOLD, 23));
 		scoreLabel.setForeground(Color.white);
 		add(scoreLabel);
 		// status
@@ -89,7 +89,10 @@ class PlayerBoxPanel extends JPanel{
 		add(sttPanel);
 	
 		try{
-			img = ImageIO.read(new File("images/PLAYER.png"));
+			if (t > 0)
+				img = ImageIO.read(new File("images/PLAYER.png"));
+			else
+				img = ImageIO.read(new File("images/CURRENTPLAYER.png"));
 		}catch (IOException e){
 			e.printStackTrace();
 		}

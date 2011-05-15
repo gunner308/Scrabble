@@ -23,6 +23,8 @@ public class Main {
 //		for (int i = 0; i < rack.size(); i++){
 //			System.out.println(rack.elementAt(i));
 //		}
+		//Dictionary d = new Dictionary();
+		//System.out.println(d.checkWord("fuck"));
 	}
 
 }

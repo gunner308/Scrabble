@@ -41,7 +41,7 @@ public class GameClient extends Thread {
 	private Board board;
 	private int turn;
 	private Vector<Player> playerList;
-	private Player currentPlayer;
+	private Player currentPlayer = null;
 	private Vector<LetterMove> currentMove;
 	private boolean isMaster;
 	private boolean stop = false;
@@ -138,16 +138,15 @@ public class GameClient extends Thread {
 
 	/* Check if "my" player is in turn or not */
 	public boolean isTurn() {
+		if (currentPlayer == null)
+			return false;
 		if ( currentPlayer.getUsername().compareTo(player.getUsername()) == 0 ) return true;
 		return false;
-
-
 	}
 
 
 	public void sendMessage(String msg)
 	{
-
 		try
 		{
 			// wait 1 seconds then send a msg
@@ -184,6 +183,7 @@ public class GameClient extends Thread {
 
 		String requestMsg = "EXCHANGE" + "\n";
 		sendMessage(requestMsg);
+		player.getRack().clear();
 		GUI.displayMessage("You have requested to exchange tiles.");
 	}
 	/* Move Processing : place letter, remove letter from board, submit Word */
@@ -241,15 +241,8 @@ public class GameClient extends Thread {
 
 	public void quit()
 	{
-		try
-		{
-			inFromUser.close();
-			inFromServer.close();
-			outToServer.close();
-			skt.close();
-		} catch (IOException e) {
-			System.err.println(e);
-		}
+		this.sendMessage("QUIT " + player.getUsername() + "\n");
+		closeSocket();
 	}
 
 
@@ -371,10 +364,39 @@ public class GameClient extends Thread {
 				GUI.displayMessage("The room is full.");
 				return false;
 			}
+			else if (getCommand.startsWith("QUIT"))  {
+				String username = getCommand.split(" ")[1];
+				quitHandler(username);
+			}
 
 		}
 		return false;
 
+	}
+	
+	private void surrenderHandler(String username)
+	{
+		for (Player i:playerList){
+			if (i.getUsername().equals(username)){
+				i.setResign(true);
+				break;
+			}
+		}
+	}
+	
+	private void quitHandler(String username)
+	{
+		/* Remove the quitted player from list */
+		
+		for ( int i = 0; i < playerList.size(); i ++ )  {
+			if ( playerList.get(i).getUsername().equals(username))   {
+				playerList.remove(i);
+			}
+		}
+		System.out.println("Trong quithandler: " + playerList.size());
+		String noticeMessage = username + " has left the game";
+		GUI.displayMessage(noticeMessage);
+		GUI.redisplay();
 	}
 
 	private void pause(int time)
@@ -440,7 +462,7 @@ public class GameClient extends Thread {
 					receiveLetter(tileID);
 					receivedTile = receivedTile + Constants.tileLetter[tileID];
 					if (player.getRack().size() == 7){
-						GUI.displayMessage("Receiced tiles: " + receivedTile);
+						GUI.displayMessage("Received tiles: " + receivedTile);
 						receivedTile = "";
 						GUI.redisplay();
 					}
@@ -468,24 +490,20 @@ public class GameClient extends Thread {
 					break;
 				}
 				else if(getCommand.startsWith("QUIT"))  {
-
 					String username = getCommand.split(" ")[1];
-
-					/* Remove the quitted player from list */
-					for ( int i = 0; i < playerList.size(); i ++ )  {
-						if ( playerList.get(i).getUsername() == username)   {
-							playerList.remove(i);
-						}
-					}
-					String noticeMessage = username + " has left the game";
-					GUI.displayMessage(noticeMessage);
-					GUI.redisplay();
+					quitHandler(username);
+					
+				}
+				else if(getCommand.startsWith("SURRENDER"))  {
+					String username = getCommand.split(" ")[1];
+					surrenderHandler(username);
+					GUI.displayMessage(username + " has resigned.");
 				}
 				else if(getCommand.startsWith("ACCEPT") || getCommand.startsWith("REFUSE"))  {
-
-					String backMessage = getCommand.split(" ")[0];
-
-					this.checkWordResult(backMessage);
+					if (isTurn()){
+						String backMessage = getCommand.split(" ")[0];
+						this.checkWordResult(backMessage);
+					}
 
 				}
 
