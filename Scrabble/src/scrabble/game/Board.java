@@ -298,31 +298,64 @@ public class Board {
         if (currentMove.size() == 1)
         {
             String tmp = "";
-            String s = "";
-            int i = currentMove.elementAt(0).y - 1;
-            while (i >= 0 && board[currentMove.elementAt(0).x][i].isOccupied())
+            int it = currentMove.elementAt(0).y;
+            int x  = currentMove.elementAt(0).x;
+            // horizontal
+            while (it > 0 && board[x][it-1].isOccupied())
             {
-                tmp += board[currentMove.elementAt(0).x][i].tile.letter;
-                if ((i>0 && 
-                    !board[currentMove.elementAt(0).x][i-1].isOccupied()) || i==0) 
+                it--;
+            }
+            Position pos = new Position (x, it);
+            while (it < 15 && board[x][it].isOccupied() || preOccupied(new Position(x, it), currentMove))
+            {
+                if (board[x][it].isOccupied()) tmp += board[x][it].getTile().letter;
+                else
                 {
-                    Position p = new Position (currentMove.elementAt(0).x, i);
-                    initPos.add(p);
+                    for (int j=0; j<currentMove.size(); j++)
+                    {
+                        if (currentMove.elementAt(j).x ==x && currentMove.elementAt(it).y == it)
+                        {
+                            tmp += currentMove.elementAt(it).tile.letter;
+                        }
+                    }
                 }
-                i--;
+                it++;
             }
-            for (int j=tmp.length()-1; j>=0; j--)
+            if (tmp.length()>1)
             {
-                s += tmp.charAt(j);
-            }
-            int j = currentMove.elementAt(0).x;
-            while (j<size && board[currentMove.elementAt(0).x][j].isOccupied())
-            {
-                s += board[currentMove.elementAt(0).x][j].tile.letter;
-                j++;
+                wordsToCheck.add(tmp.toLowerCase());
+                initPos.add(pos);
             }
 
-            wordsToCheck.add(s.toLowerCase());
+
+            // vertical
+            it = currentMove.elementAt(0).x;
+            int y  = currentMove.elementAt(0).y;
+            while (it > 0 && board[it-1][y].isOccupied())
+            {
+                it--;
+            }
+            pos = new Position (it, y);
+            while (it < 15 && board[it][y].isOccupied() || preOccupied(new Position(it, y), currentMove))
+            {
+                if (board[it][y].isOccupied()) tmp += board[it][y].getTile().letter;
+                else
+                {
+                    for (int j=0; j<currentMove.size(); j++)
+                    {
+                        if (currentMove.elementAt(j).y ==y && currentMove.elementAt(it).x == it)
+                        {
+                            tmp += currentMove.elementAt(it).tile.letter;
+                        }
+                    }
+                }
+                it++;
+            }
+            if (tmp.length()>1)
+            {
+                wordsToCheck.add(tmp.toLowerCase());
+                initPos.add(pos);
+            }
         }
         else
         {
@@ -396,7 +429,7 @@ public class Board {
                 {
                     it--;
                 }
-                initPos.add(new Position(it, y));
+                Position pos = new Position (it, y);
                 while (it < 15 && board[it][y].isOccupied() || preOccupied(new Position(it, y), m))
                 {
                     if (board[it][y].isOccupied()) tmp += board[it][y].getTile().letter;
@@ -415,6 +448,7 @@ public class Board {
                 if (tmp.length()>1)
                 {
                     wordsToCheck.add(tmp.toLowerCase());
+                    initPos.add(pos);
                 }
             }
         }
@@ -430,7 +464,7 @@ public class Board {
                 {
                     it--;
                 }
-                initPos.add(new Position(x, it));
+                Position pos = new Position (x, it);
                 while (it < 15 && board[x][it].isOccupied() || preOccupied(new Position(x, it), m))
                 {
                     if (board[x][it].isOccupied()) tmp += board[x][it].getTile().letter;
@@ -449,6 +483,7 @@ public class Board {
                 if (tmp.length()>1)
                 {
                     wordsToCheck.add(tmp.toLowerCase());
+                    initPos.add(pos);
                 }
             }
         }
