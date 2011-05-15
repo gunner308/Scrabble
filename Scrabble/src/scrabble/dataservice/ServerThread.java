@@ -24,6 +24,7 @@ public class ServerThread extends Thread {
     private static Vector<Socket> clientSocketList = new Vector<Socket>();
     private static boolean lockWrite = false;
     private boolean myTurn;
+    private boolean stop = false;
     public ServerThread(Game _game, Socket _skt) throws IOException
     {
         game = _game;
@@ -170,6 +171,7 @@ public class ServerThread extends Thread {
                     if (!isMaster)
                     {
                         quitHandler();
+                        stop = true;
                     }
                     else
                     {
@@ -182,24 +184,10 @@ public class ServerThread extends Thread {
                 {
                     if (line.startsWith("START"))
                     {
-                        //timing = System.currentTimeMillis();
                         if (game.canStart())
                         {
-//                            game.startGame();
-                            //game.setGameStt(true);
                             String str = "START\n";
-                            outToAll(str, -1);
-                            /*
-                            try
-                            {
-                                Thread.currentThread().sleep(1000);
-                            }
-                            catch (InterruptedException ie)
-                            {
-                                
-                            }
-                             * 
-                             */
+                            outToAll(str, -1);    
                             break;
                         }
                         else
@@ -297,7 +285,7 @@ public class ServerThread extends Thread {
                         {
                             System.out.println("server: this is a correct move");
                             outToAll("ACCEPT\n", -1);
-                            outToClient.writeBytes("SET_SCORE " + game.calculateScore());
+                            outToAll("SET_SCORE " + game.calculateScore(), -1);
                             outToAll("TURN "+ game.nextTurn() + "\n", -1);
                         }
                         else 
@@ -385,23 +373,13 @@ public class ServerThread extends Thread {
     {
         try
         {
-            //while (true)
-            //{
                 welcome();
                 while (!masterQuit)
                 {
                     controlInRoom();
-                    //if (quited) break;
-                    controlInPlay();
-                    //if (quited) break;
+                    if (!stop) controlInPlay();
                 }
-                //if (!masterQuit) break;
-            //}
         }
-        /*catch (SocketException se){
-            System.out.println("SocketException!!!");
-            quit();
-        }*/
         catch (IOException ioe)
         {
             
