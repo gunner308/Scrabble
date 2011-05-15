@@ -38,23 +38,15 @@ public class InGamePanel extends JPanel{
 	private Vector<Player> playerList;
 	private GameClient client;
 	Image bgimage = null;
-	private boolean hasStarted = false;
 	private ChatClient cc;
 	
 	public InGamePanel(){}
 	
 	public InGamePanel(MainFrame f, GameClient _client)
 	{
-		
-		client = _client;
-		mainFrame = f;
-		board = client.getBoard();
-		player = client.getPlayer();
-		playerList = client.getPlayerList();
-		//System.out.println("in game");
 		setLayout(null);
-		cc = new ChatClient(player.getUsername(), 200, this);
-		cc.start();
+		mainFrame = f;
+		set(_client);
 		
 		addPlayerPanel();
 		addGamePanel();
@@ -63,13 +55,21 @@ public class InGamePanel extends JPanel{
 		addResignButton();
 		addQuitGameButton();
 		try{
-			bgimage = ImageIO.read(new File("images/background.png"));
+			bgimage = ImageIO.read(new File("images/background.jpg"));
 			bgimage = bgimage.getScaledInstance(800, 600, Image.SCALE_AREA_AVERAGING);
 		}catch(IOException e){
 			e.printStackTrace();
 		}
-                
-		
+	}
+	
+	public void set(GameClient _client)
+	{
+		client = _client;
+		board = client.getBoard();
+		player = client.getPlayer();
+		playerList = client.getPlayerList();
+		cc = new ChatClient(player.getUsername(), 200, this);
+		cc.start();
 	}
 	
 			
@@ -83,7 +83,7 @@ public class InGamePanel extends JPanel{
 	private void addPlayerPanel()
 	{
 		playerPanel = new PlayerPanel(playerList);
-		playerPanel.setBounds(20, 0, 800, 80);
+		playerPanel.setBounds(20, 5, 800, 80);
 		add(playerPanel);
 	}
 	
@@ -113,7 +113,7 @@ public class InGamePanel extends JPanel{
 			b.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e)
 				{
-					if (!hasStarted && client.canStart()){
+					if (!client.hasStarted() && client.canStart()){
 						client.callStartGame();
 					}
 				}
@@ -131,7 +131,7 @@ public class InGamePanel extends JPanel{
 		b.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e)
 			{
-				if (hasStarted){
+				if (client.hasStarted()){
 					player.setResign(true);
 					client.resign();
 					mainFrame.redisplay();
@@ -189,7 +189,7 @@ public class InGamePanel extends JPanel{
 	public void redisplay()
 	{
 		chatPanel.repaint();
-		gamePanel.repaint();
+		gamePanel.redisplay();
 		playerPanel.redisplay();
 	}
 

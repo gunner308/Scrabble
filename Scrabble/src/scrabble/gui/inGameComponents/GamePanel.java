@@ -44,7 +44,7 @@ public class GamePanel extends JPanel{
 	private TileButton sourceButton;
 	private TileButton currentButton;
 	private Toolkit toolkit;
-	private Vector<LetterMove> currentMove = new Vector<LetterMove>();
+	private Vector<LetterMove> currentMove;
 	
 	public GamePanel(){}
 	
@@ -53,6 +53,7 @@ public class GamePanel extends JPanel{
 		client = _client;
 		player = client.getPlayer();
 		board = client.getBoard();
+		currentMove = client.getCurrentMove();
 		setLayout(null);
 		
 		toolkit = Toolkit.getDefaultToolkit();
@@ -135,7 +136,7 @@ public class GamePanel extends JPanel{
 			public void actionPerformed(ActionEvent e)
 			{
 				if (client.isTurn() && client.countTile() >= 7){
-					client.requestExchange();
+					client.submitWord();
 				}
 			}
 		});
@@ -147,39 +148,57 @@ public class GamePanel extends JPanel{
 	{
 		for(LetterMove m:currentMove){
 			if (m.x == i && m.y == j){
+				System.out.println("Oldtile");
 				return false;
 			}
 		}
 		return true;
 	}
 	
+	public void redisplay()
+	{
+		tilePanel.updateRack();
+		boardPanel.update();
+		tileLeftPanel.repaint();
+	}
+	
 	// Panel contains player's tiles
 	class TilePanel extends JPanel{
+		Vector<TileButton> rack;
+		Image img;
 		
 		public TilePanel()
 		{
 			setLayout(new GridLayout(1, 7));
 			try{
-				Image img = ImageIO.read(new File("images/0.png"));
-				for (int i = 0; i < 7; i++){
-					TileButton b = new TileButton(0, i, 0, img, TILE_SIZE, false);
-					b.setTile(new Tile(i));
-					add(b);
-				}
+				img = ImageIO.read(new File("images/0.png"));
 			}catch (IOException e){
 				e.printStackTrace();
+			}
+			rack = new Vector<TileButton>();
+			for (int i = 0; i < 7; i++){
+				TileButton b = new TileButton(0, i, -1, img, TILE_SIZE);
+				rack.add(b);
+				add(b);
 			}
 		}
 		
 		public void updateRack()
 		{
-			Vector<Tile> rack = player.getRack();
-			
+			for (TileButton i:rack){
+				i.removeTile();
+			}
+			int count = 0;
+			for (Tile i: player.getRack()){
+				rack.get(count).setTile(i);
+				count++;
+			}	
 		}
 	}
 	
 	// panel contains board
 	class BoardPanel extends JPanel{
+		private TileButton B[][] = new TileButton[15][15];
 		
 		public BoardPanel()
 		{
@@ -200,10 +219,29 @@ public class GamePanel extends JPanel{
 				}else{
 					img = ImageIO.read(new File("images/"+s.getType()+".png"));
 				}
-				TileButton b = new TileButton(i, j, s.getType(), img, SQUARE_SIZE, true);
+				TileButton b = new TileButton(i, j, s.getType(), img, SQUARE_SIZE);
+				B[i][j] = b;
 				this.add(b);
 			}catch (IOException e){
 				e.printStackTrace();
+			}
+		}
+		
+		public void update()
+		{
+			for (int i = 0; i < 15; i++){
+				for (int j = 0; j < 15; j++){
+					if (board.getSquare(i, j).isOccupied()){
+						B[i][j].setTile(board.getSquare(i, j).getTile());
+					}else if (B[i][j].tile != null){
+						B[i][j].removeTile();
+					}
+				}
+			}
+			currentMove = client.getCurrentMove();
+			for (LetterMove i:currentMove){
+				System.out.println(i.x + " " + i.y);
+				B[i.x][i.y].setTile(i.getTile());
 			}
 		}
 	}
@@ -214,16 +252,14 @@ public class GamePanel extends JPanel{
 		Tile tile;
 		Image orgImg;
 		int SIZE;
-		boolean inBoard;
 		int x, y;
 		
 		public TileButton(){}
 		
-		public TileButton(int i, int j, int _type, Image _img, int size, boolean _inBoard)
+		public TileButton(int i, int j, int _type, Image _img, int size)
 		{
 			x = i;
 			y = j;
-			inBoard = _inBoard;
 			SIZE = size;
 			orgImg = _img;
 			orgImg = orgImg.getScaledInstance(SIZE, SIZE, Image.SCALE_AREA_AVERAGING);
@@ -268,22 +304,33 @@ public class GamePanel extends JPanel{
 		
 		public void mousePressed(MouseEvent e) 
 		{
-			if (client.isTurn() && b.tile != null && !isOldTile(b.x, b.y)){
-				currentTile = b.tile;
-				sourceButton = b;
-				Image cursorImage = toolkit.getImage("images/letter/" + b.tile.getLetter() +".png");
-				cursorImage = cursorImage.getScaledInstance(30, 30, Image.SCALE_AREA_AVERAGING);
-				Point cursorHotSpot = new Point(0,0);
-				Cursor customCursor = toolkit.createCustomCursor(cursorImage, cursorHotSpot, "");
-				setCursor(customCursor);
-				b.removeTile();
+			if (client.isTurn() && b.tile != null){
+				//System.out.println("Vao dc vong 1");
+				if (b.type == -1 || !isOldTile(b.x, b.y)){
+					currentTile = b.tile;
+					sourceButton = b;
+					Image cursorImage = toolkit.getImage("images/letter/" + b.tile.getLetter() +".png");
+					cursorImage = cursorImage.getScaledInstance(30, 30, Image.SCALE_AREA_AVERAGING);
+					Point cursorHotSpot = new Point(0,0);
+					Cursor customCursor = toolkit.createCustomCursor(cursorImage, cursorHotSpot, "");
+					setCursor(customCursor);
+					b.removeTile();
+				}
 			}
 		}
 		public void mouseReleased(MouseEvent e) 
 		{
-			//System.out.printf("%d %d\n", b.x, b.y);
+			if (currentButton == null)
+				return;
+			
 		    if (currentButton.tile == null){
 		    	if (currentTile != null){
+		    		if (sourceButton.type != -1){
+		    			client.callRemoveLetter(sourceButton.x, sourceButton.y);
+		    		}
+		    		if (currentButton.type != -1){
+		    			client.callPlaceLetter(currentTile.getID(), currentButton.x, currentButton.y);
+		    		}
 		    		currentButton.setTile(currentTile);
 		    	}
 		    	sourceButton = null;
@@ -292,6 +339,7 @@ public class GamePanel extends JPanel{
 		    }
 		    currentTile = null;
 		    currentButton = null;
+		    sourceButton = null;
 		    setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 		}
 		
