@@ -190,16 +190,16 @@ public class GameClient extends Thread {
 	/* Move Processing : place letter, remove letter from board, submit Word */
 	public void placeLetter(int tileID, int x, int y) {
 		LetterMove tempMove = new LetterMove(x, y, tileID);
+                currentMove.add(tempMove);
                 if (this.isTurn())
-                for (Tile t: player.getRack())
-                {
-                    if (t.getID() == tileID)
+                    for (Tile t: player.getRack())
                     {
-                        player.getRack().remove(t);
-                        break;
+                        if (t.getID() == tileID)
+                        {
+                            player.getRack().remove(t);
+                            break;
+                        }
                     }
-                }
-		currentMove.add(tempMove);
 	}
 	
 	public void callPlaceLetter(int tileID, int x, int y)
@@ -210,14 +210,14 @@ public class GameClient extends Thread {
 	}
 
 	public void removeLetter(int x, int y) {
-                if (this.isTurn())
 		for (LetterMove i:currentMove){
-			if (i.x == x && i.y == y)
-                        {
+                    if (i.x == x && i.y == y)
+                    {
+                        if (this.isTurn())
                             player.getRack().add(i.getTile());
-                            currentMove.remove(i);
-                            break;
-			}
+                        currentMove.remove(i);
+                        break;
+                    }
 		}
 	}
 	
@@ -240,13 +240,12 @@ public class GameClient extends Thread {
 			board.update(currentMove);
 			//GUI.redisplay();
 			currentMove.clear();
-			GUI.displayMessage("You have submitted successfully.");
+                        if (this.isTurn())
+                            GUI.displayMessage("You have submitted successfully.");
 			GUI.redisplay();
 		}
 
 		else if ( getCommand.startsWith("REFUSE")) {
-			//currentMove.clear();
-			//GUI.redisplay();
 			GUI.displayMessage("Your submitted word is incorrect.");
 		}
 
