@@ -38,7 +38,6 @@ public class InGamePanel extends JPanel{
 	private Vector<Player> playerList;
 	private GameClient client;
 	Image bgimage = null;
-	private boolean hasStarted = false;
 	private ChatClient cc;
 	
 	public InGamePanel(){}
@@ -113,7 +112,7 @@ public class InGamePanel extends JPanel{
 			b.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e)
 				{
-					if (!hasStarted && client.canStart()){
+					if (!client.hasStarted() && client.canStart()){
 						client.callStartGame();
 					}
 				}
@@ -131,7 +130,7 @@ public class InGamePanel extends JPanel{
 		b.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e)
 			{
-				if (hasStarted){
+				if (client.hasStarted()){
 					player.setResign(true);
 					client.resign();
 					mainFrame.redisplay();
@@ -189,7 +188,7 @@ public class InGamePanel extends JPanel{
 	public void redisplay()
 	{
 		chatPanel.repaint();
-		gamePanel.repaint();
+		gamePanel.redisplay();
 		playerPanel.redisplay();
 	}
 

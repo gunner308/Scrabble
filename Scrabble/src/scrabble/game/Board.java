@@ -184,6 +184,7 @@ public class Board {
                 else start = findMin(m);
                 if (findMax(m) < size-1) end = findMax(m)+1;
                 else end = findMax(m);
+                System.out.println("board: start - " + start + " end - " + end);
                 while (start <=end)
                 {
                     if (!board[m.elementAt(0).x][start].isOccupied() 

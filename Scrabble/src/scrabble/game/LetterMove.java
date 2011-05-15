@@ -18,9 +18,9 @@ public class LetterMove {
         }
         public LetterMove (String lt, String _x, String _y)
         {
-        	tile.id = ((int)lt.toCharArray()[0]-48)*10 + (int)lt.toCharArray()[1]-48;
-            x = ((int)_x.toCharArray()[0]-48) * 10 + (int) _x.toCharArray()[1];
-            y = ((int)_y.toCharArray()[0]-48) * 10 + (int) _y.toCharArray()[1];
+        	tile = new Tile(Integer.parseInt(lt));
+            x = Integer.parseInt(_x);
+            y = Integer.parseInt(_y);
         }
 
 }

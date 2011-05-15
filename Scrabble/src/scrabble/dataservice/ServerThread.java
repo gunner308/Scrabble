@@ -22,7 +22,7 @@ public class ServerThread extends Thread {
     private static boolean masterQuit = false;
     private String username;
     private static Vector<Socket> clientSocketList = new Vector<Socket>();
-    private static boolean lockWrite;
+    private static boolean lockWrite = false;
     private boolean myTurn;
     public ServerThread(Game _game, Socket _skt) throws IOException
     {
@@ -64,10 +64,12 @@ public class ServerThread extends Thread {
             if ((exception == -1) || (i!=exception))
             {
                 dstSocket = clientSocketList.elementAt(i);
+                while(lockWrite);
+                lockWrite = true;
                 try{
                     DataOutputStream out = new DataOutputStream(dstSocket.getOutputStream());
-                    while(lockWrite);
-                    lockWrite = true;
+                    //while(lockWrite);
+                    //lockWrite = true;
                     out.writeBytes(s);
                 }
                 catch (IOException ioe){
@@ -112,17 +114,20 @@ public class ServerThread extends Thread {
                 while(lockWrite);
                 lockWrite = true;
                 outToClient.writeBytes("ERROR 1\n");
-                skt.close();
                 lockWrite = false;
+                skt.close();
                 continue; 
             }
             username = temp[1];
             for (int i=0; i < game.getPlayerList().size(); i++)
             {
+                while(lockWrite);
+                lockWrite = true;
                 outToClient.writeBytes("JOIN " + game.getPlayerList().elementAt(i).getUsername() + "\n");
+                lockWrite = false;
             }
             clientSocketList.add(skt);
-            Player p = new Player(username, false);
+            Player p = new Player(username,false);
             game.getPlayerList().add(p);
             outToAll ("JOIN " + username + "\n", -1);
             break;
@@ -146,9 +151,9 @@ public class ServerThread extends Thread {
     public void controlInRoom () throws IOException
     {
         String line;
-        while (true)
-        {
-            if (game.isStarted()) break;
+        //havent play yet mean still in room
+        while (!game.isStarted())
+        {            
             if (inFromClient.ready())
             {
                 line = inFromClient.readLine();
@@ -173,10 +178,21 @@ public class ServerThread extends Thread {
                         //timing = System.currentTimeMillis();
                         if (game.canStart())
                         {
-                            game.startGame();
-                            game.setGameStt(true);
+//                            game.startGame();
+                            //game.setGameStt(true);
                             String str = "START\n";
                             outToAll(str, -1);
+                            /*
+                            try
+                            {
+                                Thread.currentThread().sleep(1000);
+                            }
+                            catch (InterruptedException ie)
+                            {
+                                
+                            }
+                             * 
+                             */
                             break;
                         }
                         else
@@ -195,9 +211,50 @@ public class ServerThread extends Thread {
     
     public void controlInPlay () throws IOException
     {
+        //System.out.println ("in game");
+        if (!game.isStarted())
+        {
+            for (int i = 0; i < clientSocketList.size(); i++)
+            {
+                System.out.println ("server: in for number" + i);
+                Socket dstSocket;
+                dstSocket = clientSocketList.elementAt(i);
+                try{
+                    DataOutputStream out = new DataOutputStream(dstSocket.getOutputStream());
+                    Vector <Tile> tiles = game.getTiles(game.getPlayerList().elementAt(i).getUsername());
+                    for (int j=0; j< tiles.size(); j++)
+                    {
+                        String s = "TILE " + tiles.elementAt(j).getID() +"\n";
+                        System.out.println("server: send " + s);
+                        while(lockWrite);
+                        lockWrite = true;
+                        out.writeBytes(s);
+                        lockWrite = false;
+                    }
+                    tiles.clear();
+                }
+                catch (IOException ioe)
+                {
+                }
+            }
+            
+        // testing
+            username = game.nextTurn();
+        
+            String s = "TURN " + username + "\n";
+            System.out.println ("server: " + s);
+            outToAll (s, -1);
+
+            game.startGame();
+
+            System.out.println("server: finish preparation");
+        }
+
+        
+
         long timing=0;
         String line;
-        if (username == game.nexTurn()) outToAll ("TURN " + username + "\n", -1);
+        
         while (true)
         {
             if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true
@@ -208,29 +265,38 @@ public class ServerThread extends Thread {
                 && !game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned())
             {
                 line = inFromClient.readLine();
+                System.out.println("server: receive message " + line);
                 if (username == game.getTurn())
                 {
                     timing = System.currentTimeMillis();
                     if (line.startsWith("PLACE"))
                     {
+                        System.out.println ("server: NHAN PLACE");
                         String []s = line.split(" ");
                         LetterMove letterMove = new LetterMove (s[1], s[2], s[3]);
                         game.updateMove(letterMove);
+                        System.out.println ("server: SEND PLACE");
                         outToAll (line + "\n", clientSocketList.indexOf(skt));
                     }
-                    if (line.startsWith("REMOVE\n"))
+                    if (line.startsWith("REMOVE"))
                     {
                         outToAll (line + "\n", clientSocketList.indexOf(skt));
                     }
-                    if (line.startsWith("SUBMIT\n"))
+                    if (line.startsWith("SUBMIT"))
                     {
+                        System.out.println("server: going to check word");
                         if (game.checkWord())
                         {
+                            System.out.println("server: this is a correct move");
                             outToAll("ACCEPT\n", -1);
                             outToClient.writeBytes("SET_SCORE" + game.calculateScore());
                             outToAll("TURN "+ game.nextTurn() + "\n", -1);
                         }
-                        else outToClient.writeBytes("REFUSE\n");
+                        else 
+                        {
+                            System.out.println("server: this is a wrong move");
+                            outToClient.writeBytes("REFUSE\n");
+                        }
                     }
                     if (line.startsWith("EXCHANGE"))
                     {
@@ -284,19 +350,32 @@ public class ServerThread extends Thread {
                     }
                 }
             }
-            
-            Vector <Tile> tiles = game.getNewTiles();
-            for (int i=0; i< tiles.size(); i++)
+
+            if (username == game.getTurn())
             {
-                outToClient.writeBytes("TILE " + tiles.elementAt(i).getID() +"\n");
+                Vector <Tile> tiles = game.getNewTiles();
+                for (int i=0; i< tiles.size(); i++)
+                {
+                    String s = "TILE " + tiles.elementAt(i).getID() +"\n";
+                    outToClient.writeBytes(s);
+                    System.out.println("server: update " + s);
+                }
+                if (System.currentTimeMillis() - timing >= 120000)
+                {
+                    outToAll ("TURN " + game.nextTurn() + "\n", -1);
+                }
+                if (game.endGame())
+                {
+                    outToAll("END_GAME\n", -1);
+                }
             }
-            if (System.currentTimeMillis() - timing >= 120000)
+
+            try
             {
-                outToAll ("TURN " + game.nextTurn() + "\n", -1);
-            }
-            if (game.endGame())
+                this.sleep(100);
+            } catch (Exception e)
             {
-                outToAll("END_GAME\n", -1);
+                e.printStackTrace();
             }
         }
     }

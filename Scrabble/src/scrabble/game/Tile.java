@@ -20,6 +20,8 @@ public class Tile {
     public Tile(Tile t)
     {
     	letter = t.letter;
+        id = t.id;
+        point = t.point;
     }
     
     // set letter

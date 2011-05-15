@@ -1,5 +1,5 @@
 package scrabble.game;
-
+import java.lang.Math;
 import java.util.Vector;
 import scrabble.Constants;
 import scrabble.Player;
@@ -44,17 +44,17 @@ public class Game {
 
         return (count>1);
     }
-    
-    
 
     public boolean checkWord()
     {
         dir = board.isLine(currentMove);
+        System.out.println("game: in one line - " + dir);
         if (dir == 0) return false;
         words = board.getWords(currentMove);
 
         for (int i=0; i<words.size(); i++)
         {
+            System.out.println("game: word - " + words.elementAt(i));
             if (!dictionary.checkWord(words.elementAt(i))) return false;
         }
         return true;
@@ -85,10 +85,25 @@ public class Game {
     {
         return playerList;
     }
+    public Vector<Tile> getTiles(String username)
+    {
+        for (int i=0; i<playerList.size(); i++)
+        {
+            if (playerList.elementAt(i).getUsername() == username)
+            {
+                System.out.println("game: fill rack of player " + i);
+                bag.fillRack(playerList.elementAt(i).getRack());
 
+                Vector<Tile> newTiles = new Vector(playerList.elementAt(i).getRack());
+                return newTiles;
+            }
+        }
+        return new Vector<Tile> ();
+    }
     public Vector<Tile> getNewTiles()
     {
         int size = playerList.elementAt(turn).getRack().size();
+        //System.out.println("game: player " + turn + " has " + size + " tiles");
         bag.fillRack(playerList.elementAt(turn).getRack());
         Vector<Tile> newTiles = new Vector();
         Vector<Tile> rack = playerList.elementAt(turn).getRack();
@@ -97,7 +112,16 @@ public class Game {
             newTiles.add(rack.elementAt(i));
         }
 
+        if (newTiles.size()>0)
+            System.out.println("game: there are " + newTiles.size() + " new tiles");
         return newTiles;
+    }
+
+    public String getTurn()
+    {
+        if (turn == -1)
+            return "null";
+        return playerList.elementAt(turn).getUsername();
     }
 
     public String nextTurn ()
@@ -105,18 +129,17 @@ public class Game {
         board.update(currentMove);
         currentMove.clear();
         if (turn == -1)
-            turn = (int)(System.currentTimeMillis() * 257) % playerList.size();
+            turn = Math.abs((int)(System.currentTimeMillis() * 257) % playerList.size());
         else
         {
-            while (playerList.elementAt((turn++) % playerList.size()).resigned());
+            turn++;
+            turn = turn % playerList.size();
+            while (playerList.elementAt(turn).resigned())
+            {
+                turn++;
+                turn = turn % playerList.size();
+            };
         }
-        System.out.println("Turn: " + turn);
-        return playerList.elementAt(turn).getUsername();
-        //return playerList.elementAt(0).getUsername();
-    }
-    
-    public String getTurn()
-    {
         return playerList.elementAt(turn).getUsername();
     }
 
