@@ -500,7 +500,7 @@ public class GameClient extends Thread {
 					GUI.displayMessage(username + " has resigned.");
 				}
 				else if(getCommand.startsWith("ACCEPT") || getCommand.startsWith("REFUSE"))  {
-					if (isTurn()){
+					{
 						String backMessage = getCommand.split(" ")[0];
 						this.checkWordResult(backMessage);
 					}

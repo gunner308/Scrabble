@@ -64,10 +64,12 @@ public final class MainFrame extends JFrame {
 		client = _client;
 	
 		if (inGamePanel == null){
-			inGamePanel = new InGamePanel(this, client);
-			add(inGamePanel);
+                    inGamePanel = new InGamePanel(this, client);
+                    add(inGamePanel);
 		}else{
-			inGamePanel.set(client);
+                    this.remove(inGamePanel);
+                    inGamePanel = new InGamePanel(this, client);
+                    add(inGamePanel);
 		}
 		inGamePanel.setVisible(true);
 		status = STATUS.IN_ROOM;

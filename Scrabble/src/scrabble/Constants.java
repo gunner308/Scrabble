@@ -13,13 +13,13 @@ public class Constants {
     //public static int READY = 1;
     //public static int RESIGN = -1;
 
-    public static int tilePoint[] = {1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8,4,10, 0};
+    public static int tilePoint[] = {1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8,4,10};
     public static char tileLetter[] = {'A','B',
                                 'C','D','E',
                                 'F','G','H','I', 'J', 'K', 'L','M','N','O','P','Q',
                                 'R','S',
                                 'T','U',
-                                'V', 'W', 'X', 'Y','Z', ' '};
+                                'V', 'W', 'X', 'Y','Z'};
     public static int VERTICAL =2;
     public static int HORIZONTAL=1;
     public static int NON = 0;
@@ -55,7 +55,7 @@ public class Constants {
     };
 
     public static int getPoint(char c)    {
-
+        c = (char)(c - 'a' + 'A');
         for ( int i = 0; i < tileLetter.length; i ++)   {
             if ( c == tileLetter[i] )   {
                 return tilePoint[i];

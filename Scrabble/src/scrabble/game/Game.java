@@ -47,6 +47,13 @@ public class Game {
 
     public boolean checkWord()
     {
+        System.out.print("game: current letters ");
+        for (LetterMove i:currentMove)
+        {
+            System.out.print(i.x + " " + i.y + " - ");
+        }
+        System.out.println();
+        
         dir = board.isLine(currentMove);
         System.out.println("game: in one line - " + dir);
         if (dir == 0) return false;
@@ -146,6 +153,8 @@ public class Game {
     // calculate score
     private int marking(String word, Position pos, int dir, int mod)
     {
+        System.out.println("game: position " + pos.x + " " + pos.y);
+        System.out.println("game: word " + word);
         int ans = 0;
         Square cur;
         Position curPos = new Position(pos);
@@ -158,26 +167,31 @@ public class Game {
             {
                 case (Constants.NORMAL):
                     ans += Constants.getPoint(word.charAt(i));
+                    System.out.println("game: plus " + word.charAt(i) + " " + Constants.getPoint(word.charAt(i)));
                     break;
                 case (Constants.X2LETTER):
                     if (board.checkNewLetter(pos))
                         ans += Constants.getPoint(word.charAt(i));
                     ans += Constants.getPoint(word.charAt(i));
+                    System.out.println("game: plus " + Constants.getPoint(word.charAt(i)));
                     break;
                 case (Constants.X3LETTER):
                     if (board.checkNewLetter(pos))
                         ans += (Constants.getPoint(word.charAt(i)) * 2);
                     ans += Constants.getPoint(word.charAt(i));
+                    System.out.println("game: plus " + Constants.getPoint(word.charAt(i)));
                     break;
                 case (Constants.X2WORD):
                     if (board.checkNewLetter(pos))
                         modifier *= 2;
                     ans += Constants.getPoint(word.charAt(i));
+                    System.out.println("game: plus " + Constants.getPoint(word.charAt(i)));
                     break;
                 case (Constants.X3WORD):
                     if (board.checkNewLetter(pos))
                         modifier *= 3;
                     ans += Constants.getPoint(word.charAt(i));
+                    System.out.println("game: plus " + Constants.getPoint(word.charAt(i)));
                     break;
                 default: break;
             }
@@ -186,6 +200,7 @@ public class Game {
             }
             else curPos.x ++;
         }
+        System.out.println("game: score " + ans + " " + modifier);
         if (mod == 0) return ans;
         return ans * modifier;
     }
@@ -194,7 +209,8 @@ public class Game {
     public int calculateScore()
     {
         int point = 0;
-        startPos = board.getPos(currentMove);
+        startPos = new Vector(board.getPos(currentMove));
+        System.out.println("game: startPos's size " + startPos.size());
         point = marking(words.elementAt(0), startPos.elementAt(0), dir, 1);
         for (int i=1; i<words.size(); i++)
         {
@@ -216,6 +232,14 @@ public class Game {
 
     public void removeMove(LetterMove move)
     {
-        currentMove.remove(move);
+        System.out.println("game: going to remove " + move.x + " "+  move.y);
+        for (int i=0; i<currentMove.size(); i++)
+        {
+            if (currentMove.elementAt(i).x == move.x && currentMove.elementAt(i).y == move.y)
+            {
+                System.out.println("game: remove " + currentMove.elementAt(i).tile.letter);
+                currentMove.remove(i);
+            }
+        }
     }
 }
