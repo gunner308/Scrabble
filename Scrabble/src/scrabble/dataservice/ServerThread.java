@@ -136,16 +136,14 @@ public class ServerThread extends Thread {
     private void resignHandler()
     {
         game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setResign(true);
-        outToAll ("SURRENDER" + username + "\n", clientSocketList.indexOf(skt));
-        outToAll("TURN "+ game.nextTurn() + "\n", -1);
+        outToAll ("SURRENDER " + username + "\n", clientSocketList.indexOf(skt));
         //fixTurn (j);
     }
     private void quitHandler()
     {
-        outToAll ("QUIT" + username + "\n", clientSocketList.indexOf(skt));
+        outToAll ("QUIT " + username + "\n", clientSocketList.indexOf(skt));
         game.getPlayerList().removeElementAt(clientSocketList.indexOf(skt));
         clientSocketList.remove(skt);
-        outToAll("TURN "+ game.nextTurn() + "\n", -1);
     }
     
     private void pause(int time)
@@ -325,6 +323,7 @@ public class ServerThread extends Thread {
                     if (line.startsWith("SURRENDER"))
                     {
                         resignHandler();
+                        outToAll("TURN "+ game.nextTurn() + "\n", -1);
                         break;
                     }
                     if (line.startsWith("QUIT"))
@@ -332,6 +331,7 @@ public class ServerThread extends Thread {
                         if (!isMaster)
                         {
                             quitHandler();
+                            outToAll("TURN "+ game.nextTurn() + "\n", -1);
                             break;
                         }
                         else
