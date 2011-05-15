@@ -41,7 +41,7 @@ public class Game {
         {
             if (!playerList.elementAt(i).resigned()) count++;
         }
-        System.out.println("game: there are " + count + " player");
+        //System.out.println("game: there are " + count + " player");
         return (count<2);
     }
 

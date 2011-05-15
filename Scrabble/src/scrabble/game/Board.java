@@ -294,7 +294,6 @@ public class Board {
     //make the word correspoding to the main direction 
     private void makeMainWord (Vector<LetterMove> currentMove)
     {
-
         if (currentMove.size() == 1)
         {
             String tmp = "";
@@ -313,9 +312,9 @@ public class Board {
                 {
                     for (int j=0; j<currentMove.size(); j++)
                     {
-                        if (currentMove.elementAt(j).x ==x && currentMove.elementAt(it).y == it)
+                        if (currentMove.elementAt(j).x == x && currentMove.elementAt(j).y == it)
                         {
-                            tmp += currentMove.elementAt(it).tile.letter;
+                            tmp += currentMove.elementAt(j).tile.letter;
                         }
                     }
                 }
@@ -343,9 +342,9 @@ public class Board {
                 {
                     for (int j=0; j<currentMove.size(); j++)
                     {
-                        if (currentMove.elementAt(j).y ==y && currentMove.elementAt(it).x == it)
+                        if (currentMove.elementAt(j).y ==y && currentMove.elementAt(j).x == it)
                         {
-                            tmp += currentMove.elementAt(it).tile.letter;
+                            tmp += currentMove.elementAt(j).tile.letter;
                         }
                     }
                 }
@@ -491,10 +490,9 @@ public class Board {
     public Vector<String> getWords (Vector <LetterMove> currentMove)
     {
         wordsToCheck.clear();
-        //System.out.println ("Size vector words truoc: "+wordsToCheck.size());
         makeMainWord(currentMove); 
-        makeSecondaryWord(currentMove);
-        //System.out.println ("Size vector words sau: "+wordsToCheck.size());
+        if (currentMove.size()>1)
+            makeSecondaryWord(currentMove);
         return wordsToCheck;
     }
     public Vector <Position> getPos (Vector<LetterMove> currentMove)

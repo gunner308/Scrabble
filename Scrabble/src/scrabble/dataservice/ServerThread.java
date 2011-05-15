@@ -23,7 +23,6 @@ public class ServerThread extends Thread {
     private String username;
     private static Vector<Socket> clientSocketList = new Vector<Socket>();
     private static boolean lockWrite = false;
-    private boolean myTurn;
     private boolean stop = false;
     public ServerThread(Game _game, Socket _skt) throws IOException
     {
@@ -31,7 +30,6 @@ public class ServerThread extends Thread {
         skt = _skt;
         inFromClient = new BufferedReader(new InputStreamReader(skt.getInputStream()));
         outToClient = new DataOutputStream(skt.getOutputStream());
-        myTurn = false;
     }
     
     /* DEBUGGING */
@@ -125,6 +123,7 @@ public class ServerThread extends Thread {
                 continue; 
             }
             username = temp[1];
+            System.out.println("server " + username + ": new player " + username);
             for (int i=0; i < game.getPlayerList().size(); i++)
             {
                 while(lockWrite);
@@ -230,7 +229,7 @@ public class ServerThread extends Thread {
                     for (int j=0; j< tiles.size(); j++)
                     {
                         String s = "TILE " + tiles.elementAt(j).getID() +"\n";
-                        System.out.println("server: send " + s);
+                        System.out.println("server " + username + ": send " + s);
                         while(lockWrite);
                         lockWrite = true;
                         out.writeBytes(s);
@@ -243,19 +242,17 @@ public class ServerThread extends Thread {
                 }
             }
             
-        // testing
-            username = game.nextTurn();
+            String name = game.nextTurn();
         
-            String s = "TURN " + username + "\n";
-            System.out.println ("server: " + s);
+            String s = "TURN " + name + "\n";
+            System.out.println ("server " + username + ": " + s);
             outToAll (s, -1);
 
             game.startGame();
 
-            System.out.println("server: finish preparation");
+            System.out.println("server " + username + ": finish preparation");
         }
 
-        long timing=0;
         String line;
         
         while (true)
@@ -264,36 +261,37 @@ public class ServerThread extends Thread {
             if (game.endGame())
             {
                 outToAll("END_GAME\n", -1);
+                break;
             }
             if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true
                 && username.equals(game.getTurn()))
-                outToAll("TURN " + game.nextTurn() + "\n", -1);
-            timing = System.currentTimeMillis();
+                outToAll("TURN " + game.nextTurn() + "\n", -1);            
             while (!game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned())
             {
                 if (game.endGame())
                 {
                     outToAll("END_GAME\n", -1);
+                    break;
                 }
                 inFromClient.ready();
                 if (game.endGame())
                 {
                     outToAll("END_GAME\n", -1);
+                    break;
                 }
                 
                 line = inFromClient.readLine();
-                System.out.println("server: receive message " + line);
-                System.out.println("server: username " + username + "-" +game.getTurn());
+                System.out.println("server " + username + ": receive message " + line);
+                System.out.println("server username " + username + "-" +game.getTurn());
                 if (username.compareTo(game.getTurn()) == 0)
                 {
-                    timing = System.currentTimeMillis();
                     if (line.startsWith("PLACE"))
                     {
-                        System.out.println ("server: NHAN PLACE");
+                        System.out.println ("server " + username + ": NHAN PLACE");
                         String []s = line.split(" ");
                         LetterMove letterMove = new LetterMove (s[1], s[2], s[3]);
                         game.updateMove(letterMove);
-                        System.out.println ("server: SEND PLACE");
+                        System.out.println ("server " + username + ": SEND PLACE");
                         outToAll (line + "\n", clientSocketList.indexOf(skt));
                     }
                     if (line.startsWith("REMOVE"))
@@ -305,10 +303,10 @@ public class ServerThread extends Thread {
                     }
                     if (line.startsWith("SUBMIT"))
                     {
-                        System.out.println("server: going to check word");
+                        System.out.println("server " + username + ": going to check word");
                         if (game.checkWord())
                         {
-                            System.out.println("server: this is a correct move");
+                            System.out.println("server " + username + ": this is a correct move");
                             outToAll("ACCEPT\n", -1);
                             outToAll("SET_SCORE " + game.calculateScore() + "\n", -1);
                             Vector <Tile> tiles = game.getNewTiles();
@@ -316,7 +314,7 @@ public class ServerThread extends Thread {
                             {
                                 String s = "TILE " + tiles.elementAt(i).getID() +"\n";
                                 outToClient.writeBytes(s);
-                                System.out.println("server: update " + s);
+                                System.out.println("server " + username + ": update " + s);
                             }
                             outToAll("TURN "+ game.nextTurn() + "\n", -1);
                             game.clearMove();
@@ -324,7 +322,7 @@ public class ServerThread extends Thread {
                         }
                         else 
                         {
-                            System.out.println("server: this is a wrong move");
+                            System.out.println("server " + username + ": this is a wrong move");
                             outToClient.writeBytes("REFUSE\n");
                         }
                     }
