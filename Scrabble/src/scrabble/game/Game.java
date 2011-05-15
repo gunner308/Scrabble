@@ -1,5 +1,5 @@
 package scrabble.game;
-
+import java.lang.Math;
 import java.util.Vector;
 import scrabble.Constants;
 import scrabble.Player;
@@ -44,8 +44,6 @@ public class Game {
 
         return (count>1);
     }
-    
-    
 
     public boolean checkWord()
     {
@@ -85,7 +83,18 @@ public class Game {
     {
         return playerList;
     }
-
+    public Vector<Tile> getTiles(String username)
+    {
+        for (int i=0; i<playerList.size(); i++)
+        {
+            if (playerList.elementAt(i).getUsername() == username)
+            {
+                bag.fillRack(playerList.elementAt(i).getRack());
+                return playerList.elementAt(i).getRack();
+            }
+        }
+        return null;
+    }
     public Vector<Tile> getNewTiles()
     {
         int size = playerList.elementAt(turn).getRack().size();
@@ -100,23 +109,29 @@ public class Game {
         return newTiles;
     }
 
+    public String getTurn()
+    {
+        if (turn == -1)
+            return "null";
+        return playerList.elementAt(turn).getUsername();
+    }
+
     public String nextTurn ()
     {
         board.update(currentMove);
         currentMove.clear();
         if (turn == -1)
-            turn = (int)(System.currentTimeMillis() * 257) % playerList.size();
+            turn = Math.abs((int)(System.currentTimeMillis() * 257) % playerList.size());
         else
         {
-            while (playerList.elementAt((turn++) % playerList.size()).resigned());
+            turn++;
+            turn = turn % playerList.size();
+            while (playerList.elementAt(turn).resigned())
+            {
+                turn++;
+                turn = turn % playerList.size();
+            };
         }
-        System.out.println("Turn: " + turn);
-        return playerList.elementAt(turn).getUsername();
-        //return playerList.elementAt(0).getUsername();
-    }
-    
-    public String getTurn()
-    {
         return playerList.elementAt(turn).getUsername();
     }
 

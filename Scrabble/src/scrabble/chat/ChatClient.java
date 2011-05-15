@@ -95,6 +95,7 @@ public class ChatClient
       {
         try
         {
+        	Thread.sleep(200);
             chatSocket.receive(recv);
             inGamePanel.displayChat(convert(recv.getData()));
         }
