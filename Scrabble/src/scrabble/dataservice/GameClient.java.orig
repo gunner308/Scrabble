@@ -222,6 +222,8 @@ public class GameClient extends Thread {
 	}
 
 	public void checkWordResult(String getCommand)   {
+
+
 		if ( getCommand.startsWith("ACCEPT"))   {
 			board.update(currentMove);
 			//GUI.redisplay();
@@ -483,7 +485,7 @@ public class GameClient extends Thread {
 				}
 				else if(getCommand.startsWith("ACCEPT") || getCommand.startsWith("REFUSE"))  {
 
-					String backMessage = getCommand.split(" ")[0];
+					String backMessage = getCommand.split(" ")[1];
 
 					this.checkWordResult(backMessage);
 
