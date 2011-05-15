@@ -57,6 +57,11 @@ public class ServerThread extends Thread {
     
     /* END DEBUGGING */
 
+    public void finish()
+    {
+        stop = true;
+    }
+
     public void outToAll (String s, int exception)
     {
         Socket dstSocket;
@@ -172,6 +177,7 @@ public class ServerThread extends Thread {
                     {
                         quitHandler();
                         stop = true;
+                        break;
                     }
                     else
                     {
@@ -206,7 +212,7 @@ public class ServerThread extends Thread {
     
     public void controlInPlay () throws IOException
     {
-        //System.out.println ("in game");
+        System.out.println ("server: " + username + " in game");
         if (!game.isStarted())
         {
             for (int i = 0; i < clientSocketList.size(); i++)
@@ -254,7 +260,7 @@ public class ServerThread extends Thread {
         {
         	pause(100);
             if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true
-                && username == game.getTurn())
+                && username.equals(game.getTurn()))
                 outToAll("TURN " + game.nextTurn() + "\n", -1);
             timing = System.currentTimeMillis();
             if (inFromClient.ready()
@@ -262,7 +268,8 @@ public class ServerThread extends Thread {
             {
                 line = inFromClient.readLine();
                 System.out.println("server: receive message " + line);
-                if (username == game.getTurn())
+                System.out.println("server: username " + username + "-" +game.getTurn());
+                if (username.compareTo(game.getTurn()) == 0)
                 {
                     timing = System.currentTimeMillis();
                     if (line.startsWith("PLACE"))
@@ -277,6 +284,9 @@ public class ServerThread extends Thread {
                     if (line.startsWith("REMOVE"))
                     {
                         outToAll (line + "\n", clientSocketList.indexOf(skt));
+                        String []s = line.split(" ");
+                        LetterMove letterMove = new LetterMove (Integer.parseInt(s[1]),Integer.parseInt(s[2]), 0);
+                        game.removeMove(letterMove);
                     }
                     if (line.startsWith("SUBMIT"))
                     {
@@ -285,7 +295,7 @@ public class ServerThread extends Thread {
                         {
                             System.out.println("server: this is a correct move");
                             outToAll("ACCEPT\n", -1);
-                            outToAll("SET_SCORE " + game.calculateScore(), -1);
+                            outToAll("SET_SCORE " + game.calculateScore() + "\n", -1);
                             outToAll("TURN "+ game.nextTurn() + "\n", -1);
                         }
                         else 
@@ -297,6 +307,7 @@ public class ServerThread extends Thread {
                     if (line.startsWith("EXCHANGE"))
                     {
                         Vector <Tile> exchange = new Vector(game.exchangeRack());
+                        System.out.println("system: going to exchange");
                         for (int i=0; i< exchange.size(); i++)
                         {
                             outToClient.writeBytes("TILE " + exchange.elementAt(i).getID() +"\n");
@@ -349,7 +360,7 @@ public class ServerThread extends Thread {
                 }
             }
 
-            if (username == game.getTurn())
+            if (username.equals(game.getTurn()))
             {
                 Vector <Tile> tiles = game.getNewTiles();
                 for (int i=0; i< tiles.size(); i++)

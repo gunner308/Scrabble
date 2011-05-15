@@ -124,30 +124,26 @@ public class Board {
         {
             if (currentMove.elementAt(0).x == currentMove.elementAt(1).x)
             {
-                System.out.println ("one line x bang nhau");
+                System.out.println("board: check ngang");
                 for (int i=2; i<currentMove.size(); i++)
                 {
                     if (currentMove.elementAt(i).x != currentMove.elementAt(0).x) 
-                    {
-                        System.out.println ("one line x khac nhau trong if");
+                    {       
                         return 0;
                     }
                 }
-                System.out.println ("hang ngang");
+                System.out.println("board: ngang");
                 return 1;
             }
             else if (currentMove.elementAt(0).y == currentMove.elementAt(1).y)
             {
-                System.out.println ("one line y bang nhau");
                 for (int i=2; i<currentMove.size(); i++)
                 {
                     if (currentMove.elementAt(i).y != currentMove.elementAt(0).y) 
                     {
-                        System.out.println ("one line y khac nhau trong if");
                         return 0;
                     }
                 }
-                System.out.println ("hang doc");
                 return 2;
             }
         }
@@ -159,11 +155,9 @@ public class Board {
         {
             if (m.elementAt(i).x == p.x && m.elementAt(i).y == p.y) 
             {
-                System.out.println ("nhay vao if pre return true");
                 return true;
             }
         }
-        System.out.println ("khong nhay vao if pre return false");
         return false;
     }
     private boolean firstWord ()
@@ -180,7 +174,7 @@ public class Board {
     //check if the new tiles connect with old tiles
     public boolean checkConnected (Vector <LetterMove> m)
     {
-        if (!preOccupied(new Position (7, 7), m)) return false;
+        if (!board[7][7].isOccupied() && !preOccupied(new Position (7, 7), m)) return false;
         if (m.size() == 1)
         {
             if (m.elementAt(0).x > 0)
@@ -204,37 +198,69 @@ public class Board {
         {
             if (isOneLine(m) == 1)
             {
-                int start, end;
-                if (findMin(m) > 0 && !firstWord ()) start = findMin(m)-1;
-                else start = findMin(m);
-                if (findMax(m) < size-1 && !firstWord ()) end = findMax(m)+1;
-                else end = findMax(m);
+                int start, end, x = m.elementAt(0).x;
+                start = findMin(m);
+                end = findMax(m);
+
+                boolean ans = false;
+                if (start>0)
+                    if (board[x][start-1].isOccupied()) ans = true;
+                if (end<14)
+                    if (board[x][end+1].isOccupied()) ans = true;
+                
                 System.out.println("board: start - " + start + " end - " + end);
-                while (start <=end)
+
+                while (start <= end)
                 {
                     System.out.println ("vao while ngang");
-                    if (!board[m.elementAt(0).x][start].isOccupied() 
-                        && !preOccupied(new Position (m.elementAt(0).x, start), m)) 
-                    {
-                        System.out.println ("vao if return false");
-                        return false;
-                    }
+                    if (board[x][start].isOccupied()) ans = true;
+                    if (x>0)
+                        if (board[x-1][start].isOccupied()) ans = true;
+                    if (x<14)
+                        if (board[x+1][start].isOccupied()) ans = true;
+
+                    if (!board[x][start].isOccupied()
+                        && !preOccupied(new Position (x, start), m))
+                        {
+                            System.out.println ("board: false x " + x + "-" +start);
+                            return false;
+                        }
                     start ++;
                 }
+                if (ans) return true;
             }
             else
             {
-                int start, end;
-                if (findMin(m) > 0 && !firstWord ()) start = findMin(m)-1;
-                else start = findMin(m);
-                if (findMax(m) < size-1 && !firstWord ()) end = findMax(m)-1;
-                else end = findMax(m);
-                while (start <=end)
+               int start, end, y = m.elementAt(0).y;
+                start = findMin(m);
+                end = findMax(m);
+
+                boolean ans = false;
+                if (start>0)
+                    if (board[start-1][y].isOccupied()) ans = true;
+                if (end<14)
+                    if (board[end+1][y].isOccupied()) ans = true;
+
+                System.out.println("board: start - " + start + " end - " + end);
+
+                while (start <= end)
                 {
-                    if (!board[start][m.elementAt(0).y].isOccupied()
-                        && !preOccupied(new Position (start, m.elementAt(0).y), m)) return false;
+                    System.out.println ("vao while ngang");
+                    if (board[start][y].isOccupied()) ans = true;
+                    if (y>0)
+                        if (board[start][y-1].isOccupied()) ans = true;
+                    if (y<14)
+                        if (board[start][y+1].isOccupied()) ans = true;
+
+                    if (!board[start][y].isOccupied()
+                        && !preOccupied(new Position (start,y), m))
+                        {
+                            System.out.println ("board: false y " + start + "-" + y);
+                            return false;
+                        }
                     start ++;
                 }
+                if (ans) return true;
             }
         }
         return true;
@@ -266,12 +292,13 @@ public class Board {
     }
     
     //make the word correspoding to the main direction 
-    private String makeMainWord (Vector<LetterMove> currentMove)
+    private void makeMainWord (Vector<LetterMove> currentMove)
     {
-        String s = "";
+
         if (currentMove.size() == 1)
         {
             String tmp = "";
+            String s = "";
             int i = currentMove.elementAt(0).y - 1;
             while (i >= 0 && board[currentMove.elementAt(0).x][i].isOccupied())
             {
@@ -294,96 +321,64 @@ public class Board {
                 s += board[currentMove.elementAt(0).x][j].tile.letter;
                 j++;
             }
+
+            wordsToCheck.add(s.toLowerCase());
         }
         else
         {
             if (isLine (currentMove) == 1)
             {
                 String tmp = "";
-                int it = findMin(currentMove) - 1;
-                while (it >= 0 && board[currentMove.elementAt(0).x][it].isOccupied())
+                int it = findMin(currentMove);
+                int x = currentMove.elementAt(0).x;
+                while (it>0 && board[x][it-1].isOccupied()) it--;
+                initPos.add(new Position(x, it));
+
+                while (board[x][it].isOccupied() || preOccupied(new Position(x, it),currentMove))
                 {
-                    tmp += board[currentMove.elementAt(0).x][it].tile.letter;
-                    if ((it>0 && 
-                    !board[currentMove.elementAt(0).x][it-1].isOccupied()) || it==0) 
+                    if (board[x][it].isOccupied()) tmp += board[x][it].getTile().letter;
+                    else 
                     {
-                        Position p = new Position (currentMove.elementAt(0).x, it);
-                        initPos.add(p);
-                    }
-                    it--;
-                }
-                for (int j=tmp.length()-1; j>=0; j--)
-                {
-                    s += tmp.charAt(j);
-                }
-                for (int i= findMin(currentMove); i<=findMax(currentMove); i++)
-                {
-                    if (board[currentMove.elementAt(0).x][i].isOccupied())
-                        s += board[currentMove.elementAt(0).x][i].tile.letter;
-                    else
-                    {
-                        for (int run=0; run<currentMove.size(); run++)
+                        for (int i=0; i<currentMove.size(); i++)
                         {
-                            if (currentMove.elementAt(run).x == currentMove.elementAt(0).x 
-                                && currentMove.elementAt(run).y == i)
+                            if (currentMove.elementAt(i).x == x && currentMove.elementAt(i).y == it)
                             {
-                                s += Constants.tileLetter[currentMove.elementAt(run).tile.id];
+                                tmp += currentMove.elementAt(i).tile.letter;
                             }
                         }
                     }
+                    it++;
                 }
-                int j = findMax(currentMove) +1;
-                while (j<size && board[j][currentMove.elementAt(0).y].isOccupied())
-                {
-                    s += board[currentMove.elementAt(0).x][j].tile.letter;
-                    j++;
-                }
+
+                wordsToCheck.add(tmp.toLowerCase());
             }
             else if (isLine(currentMove) == 2)
             {
                 String tmp = "";
-                int it = findMin(currentMove) - 1;
-                while (it >= 0 && board[it][currentMove.elementAt(0).y].isOccupied())
+                int it = findMin(currentMove);
+                int y = currentMove.elementAt(0).y;
+                while (it>0 && board[it-1][y].isOccupied()) it--;
+                initPos.add(new Position(it, y));
+
+                while (board[it][y].isOccupied() || preOccupied(new Position(it, y),currentMove))
                 {
-                    tmp += board[it][currentMove.elementAt(0).y].tile.letter;
-                    if ((it>0 && 
-                        !board[it-1][currentMove.elementAt(0).y].isOccupied()) || it==0) 
-                    {
-                        Position p = new Position (it, currentMove.elementAt(0).y);
-                        initPos.add(p);
-                    }
-                    it--;
-                }
-                for (int j=tmp.length()-1; j>=0; j--)
-                {
-                    s += tmp.charAt(j);
-                }
-                for (int i= findMin(currentMove); i<=findMax(currentMove); i++)
-                {
-                    if (board[i][currentMove.elementAt(0).y].isOccupied())
-                        s += board[i][currentMove.elementAt(0).y].tile.letter;
+                    if (board[it][y].isOccupied()) tmp += board[it][y].getTile().letter;
                     else
                     {
-                        for (int run =0; run < currentMove.size(); run ++)
+                        for (int i=0; i<currentMove.size(); i++)
                         {
-                            if (currentMove.elementAt(run).x == i
-                                && currentMove.elementAt(run).y == currentMove.elementAt(0).y)
+                            if (currentMove.elementAt(i).y ==y && currentMove.elementAt(i).x == it)
                             {
-                                s += Constants.tileLetter[currentMove.elementAt(run).tile.id];
+                                tmp += currentMove.elementAt(i).tile.letter;
                             }
                         }
                     }
+                    it++;
                 }
-                int j = currentMove.elementAt(0).x+1;
-                while (j<size && board[j][currentMove.elementAt(0).y].isOccupied())
-                {
-                    s += board[j][currentMove.elementAt(0).y].tile.letter;
-                    j++;
-                }
+
+                wordsToCheck.add(tmp.toLowerCase());
             }
         }
-        System.out.println ("Main word: "+s);
-        return s.toLowerCase();
     }
     //add the secondary word to the vector
     private void makeSecondaryWord (Vector<LetterMove> m)
@@ -418,8 +413,11 @@ public class Board {
                     j++;
                 }
             }
-            if (s != "")
-            wordsToCheck.add(s.toLowerCase());
+            if (!s.trim().equals("") && s != null)
+            {
+                System.out.println("board: add string " + s + "-");
+                wordsToCheck.add(s.toLowerCase());
+            }
         }
         //vertical
         else if (isLine(m) == 2)
@@ -435,7 +433,6 @@ public class Board {
                         !board[m.elementAt(i).x][it-1].isOccupied()) || it==0) 
                     {
                         Position p = new Position (m.elementAt(i).x, it);
-                        initPos.clear();
                         initPos.add(p);
                     }
                     it--;
@@ -451,22 +448,28 @@ public class Board {
                     j++;
                 }
             }
-            if (s != "")
-            wordsToCheck.add(s.toLowerCase());
+            if (!s.trim().equals("") && s != null)
+            {
+                System.out.println("board: add string " + s + "-");
+                wordsToCheck.add(s.toLowerCase());
+            }
         }
     }
     public Vector<String> getWords (Vector <LetterMove> currentMove)
     {
         wordsToCheck.clear();
         System.out.println ("Size vector words truoc: "+wordsToCheck.size());
-        wordsToCheck.add(makeMainWord(currentMove)); 
+        makeMainWord(currentMove); 
         makeSecondaryWord(currentMove);
         System.out.println ("Size vector words sau: "+wordsToCheck.size());
         return wordsToCheck;
     }
     public Vector <Position> getPos (Vector<LetterMove> currentMove)
     {
-        return initPos;
+        Vector <Position> res = new Vector(initPos);
+        System.out.println("board: initPos's size " + initPos.size());
+        initPos.clear();
+        return res;
     }
     public boolean checkNewLetter (Position p)
     {
