@@ -148,12 +148,22 @@ public class ServerThread extends Thread {
         outToAll("TURN "+ game.nextTurn() + "\n", -1);
     }
     
+    private void pause(int time)
+    {
+    	try{
+    		Thread.sleep(time);
+    	}catch (InterruptedException e){
+    		
+    	}
+    }
+    
     public void controlInRoom () throws IOException
     {
         String line;
         //havent play yet mean still in room
         while (!game.isStarted())
         {            
+        	pause(100);
             if (inFromClient.ready())
             {
                 line = inFromClient.readLine();
@@ -257,6 +267,7 @@ public class ServerThread extends Thread {
         
         while (true)
         {
+        	pause(100);
             if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true
                 && username == game.getTurn())
                 outToAll("TURN " + game.nextTurn() + "\n", -1);
@@ -368,14 +379,6 @@ public class ServerThread extends Thread {
                 {
                     outToAll("END_GAME\n", -1);
                 }
-            }
-
-            try
-            {
-                this.sleep(100);
-            } catch (Exception e)
-            {
-                e.printStackTrace();
             }
         }
     }
