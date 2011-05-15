@@ -141,12 +141,16 @@ public class ServerThread extends Thread {
     }
     private void resignHandler()
     {
+        game.clearMove();
+        game.takeBack();
         game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).setResign(true);
         outToAll ("SURRENDER " + username + "\n", clientSocketList.indexOf(skt));
         //fixTurn (j);
     }
     private void quitHandler()
     {
+        game.clearMove();
+        game.takeBack();
         outToAll ("QUIT " + username + "\n", clientSocketList.indexOf(skt));
         game.getPlayerList().removeElementAt(clientSocketList.indexOf(skt));
         clientSocketList.remove(skt);
@@ -251,21 +255,32 @@ public class ServerThread extends Thread {
             System.out.println("server: finish preparation");
         }
 
-        
-
         long timing=0;
         String line;
         
         while (true)
         {
-        	pause(100);
+            pause(100);
+            if (game.endGame())
+            {
+                outToAll("END_GAME\n", -1);
+            }
             if (game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned() == true
                 && username.equals(game.getTurn()))
                 outToAll("TURN " + game.nextTurn() + "\n", -1);
             timing = System.currentTimeMillis();
-            if (inFromClient.ready()
-                && !game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned())
+            while (!game.getPlayerList().elementAt(clientSocketList.indexOf(skt)).resigned())
             {
+                if (game.endGame())
+                {
+                    outToAll("END_GAME\n", -1);
+                }
+                inFromClient.ready();
+                if (game.endGame())
+                {
+                    outToAll("END_GAME\n", -1);
+                }
+                
                 line = inFromClient.readLine();
                 System.out.println("server: receive message " + line);
                 System.out.println("server: username " + username + "-" +game.getTurn());
@@ -296,7 +311,16 @@ public class ServerThread extends Thread {
                             System.out.println("server: this is a correct move");
                             outToAll("ACCEPT\n", -1);
                             outToAll("SET_SCORE " + game.calculateScore() + "\n", -1);
+                            Vector <Tile> tiles = game.getNewTiles();
+                            for (int i=0; i< tiles.size(); i++)
+                            {
+                                String s = "TILE " + tiles.elementAt(i).getID() +"\n";
+                                outToClient.writeBytes(s);
+                                System.out.println("server: update " + s);
+                            }
                             outToAll("TURN "+ game.nextTurn() + "\n", -1);
+                            game.clearMove();
+                            break;
                         }
                         else 
                         {
@@ -313,15 +337,23 @@ public class ServerThread extends Thread {
                             outToClient.writeBytes("TILE " + exchange.elementAt(i).getID() +"\n");
                         }
                         outToAll("TURN "+ game.nextTurn() + "\n", -1);
+                        game.clearMove();
+                        break;
                     }
                     if (line.startsWith("PASS"))
                     {
+                        game.reInsertMove();
                         outToAll("TURN " + game.nextTurn() + "\n", -1);
+                        break;
                     }
                     if (line.startsWith("SURRENDER"))
                     {
                         resignHandler();
                         outToAll("TURN "+ game.nextTurn() + "\n", -1);
+                        if (game.endGame())
+                        {
+                            outToAll("END_GAME\n", -1);
+                        }
                         break;
                     }
                     if (line.startsWith("QUIT"))
@@ -357,26 +389,17 @@ public class ServerThread extends Thread {
                             break;
                         }
                     }
+                    if (game.endGame())
+                    {
+                        outToAll("END_GAME\n", -1);
+                    }
                 }
             }
 
-            if (username.equals(game.getTurn()))
+            if (game.endGame())
             {
-                Vector <Tile> tiles = game.getNewTiles();
-                for (int i=0; i< tiles.size(); i++)
-                {
-                    String s = "TILE " + tiles.elementAt(i).getID() +"\n";
-                    outToClient.writeBytes(s);
-                    System.out.println("server: update " + s);
-                }
-                if (System.currentTimeMillis() - timing >= 120000)
-                {
-                    outToAll ("TURN " + game.nextTurn() + "\n", -1);
-                }
-                if (game.endGame())
-                {
-                    outToAll("END_GAME\n", -1);
-                }
+                outToAll("END_GAME\n", -1);
+                finish();
             }
         }
     }

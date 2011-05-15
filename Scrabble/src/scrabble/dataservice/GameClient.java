@@ -43,6 +43,7 @@ public class GameClient extends Thread {
 	private Vector<Player> playerList;
 	private Player currentPlayer = null;
 	private Vector<LetterMove> currentMove;
+        private Vector<Tile> tmpRack;
 	private boolean isMaster;
 	private boolean stop = false;
 	private boolean hasStarted = false;
@@ -189,6 +190,14 @@ public class GameClient extends Thread {
 	/* Move Processing : place letter, remove letter from board, submit Word */
 	public void placeLetter(int tileID, int x, int y) {
 		LetterMove tempMove = new LetterMove(x, y, tileID);
+                for (Tile t: player.getRack())
+                {
+                    if (t.getID() == tileID)
+                    {
+                        player.getRack().remove(t);
+                        break;
+                    }
+                }
 		currentMove.add(tempMove);
 	}
 	
@@ -201,9 +210,11 @@ public class GameClient extends Thread {
 
 	public void removeLetter(int x, int y) {
 		for (LetterMove i:currentMove){
-			if (i.x == x && i.y == y){
-				currentMove.remove(i);
-				break;
+			if (i.x == x && i.y == y)
+                        {
+                            player.getRack().add(i.getTile());
+                            currentMove.remove(i);
+                            break;
 			}
 		}
 	}
@@ -219,6 +230,7 @@ public class GameClient extends Thread {
 
 		String requestMsg = "SUBMIT" + "\n";
 		sendMessage(requestMsg);
+                pause(400);
 	}
 
 	public void checkWordResult(String getCommand)   {
@@ -274,7 +286,7 @@ public class GameClient extends Thread {
 	}
 
 	public void requestPass()   {
-
+                player.rack = tmpRack;
 		currentMove.clear();
 		GUI.redisplay();
 		String passMessage = "PASS" + " " + player.getUsername() + "\n";
@@ -307,14 +319,18 @@ public class GameClient extends Thread {
 	}
 
 	public void endGame()   {
+                GUI.displayMessage("GAME END!");
+                for (Player p : playerList)
+                {
+                    GUI.displayMessage(p.getUsername() + " scores " + p.getScore() + " points.");
+                }
 		GUI.endGame();
 	}
 
 	public void closeSocket() {
 		stop = true;
 		try{
-			skt.close();
-			// TO DO: server stop
+                    skt.close();
 		}catch (IOException e){
 			e.printStackTrace();
 		}
@@ -426,7 +442,10 @@ public class GameClient extends Thread {
 					GUI.startTurn(currentPlayerName);
 					currentMove.clear();
 					if (this.isTurn())
-						GUI.displayMessage("You are in turn");
+                                        {
+                                            GUI.displayMessage("You are in turn");
+                                            tmpRack = new Vector(player.getRack());
+                                        }
 					else
 						GUI.displayMessage(currentPlayerName + " is in turn.");
 					GUI.redisplay();
@@ -468,7 +487,7 @@ public class GameClient extends Thread {
 					}
 				}
 				else if(getCommand.startsWith("SET_SCORE"))  {
-
+                                        
 					String wordScore = getCommand.split(" ")[1];
 					int score = Integer.parseInt(wordScore);
 					currentPlayer.addScore(score);
@@ -483,16 +502,14 @@ public class GameClient extends Thread {
 					GUI.redisplay();
 				}
 
-				else if(getCommand.startsWith("END_GAME"))  {
-
+				else if(getCommand.startsWith("END_GAME"))
+                                {
 					endGame();
-
 					break;
 				}
 				else if(getCommand.startsWith("QUIT"))  {
 					String username = getCommand.split(" ")[1];
 					quitHandler(username);
-					
 				}
 				else if(getCommand.startsWith("SURRENDER"))  {
 					String username = getCommand.split(" ")[1];
@@ -509,7 +526,10 @@ public class GameClient extends Thread {
 
 			}
 			catch(Exception e)  {
-				e.printStackTrace();
+                            if (skt.isClosed()){
+                                GUI.displayMessage("Host has quit the game.");
+                                //endGame();
+                            }
 			}
 
 		}
@@ -523,7 +543,6 @@ public class GameClient extends Thread {
 
 	public void run()    {
 		//while ( true )  {
-
 		try {
 			if (preparation())
 				mainGame();
@@ -532,9 +551,6 @@ public class GameClient extends Thread {
 		catch ( IOException e)  {
 			e.printStackTrace();
 		}
-
-
-
 	}
 
 	public Vector<Player> getPlayerList()

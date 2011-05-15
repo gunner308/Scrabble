@@ -109,12 +109,13 @@ public class InGamePanel extends JPanel{
 	private void addStartGameButton()
 	{
 		if (client.isMaster()){
-			JButton b = new MyButton("Start game", 120, 30, 600, 100, null);
+			final JButton b = new MyButton("Start game", 120, 30, 600, 100, null);
 			b.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e)
 				{
 					if (!client.hasStarted() && client.canStart()){
 						client.callStartGame();
+                                                b.setVisible(false);
 					}
 				}
 			});
@@ -151,9 +152,7 @@ public class InGamePanel extends JPanel{
 		b.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e)
 			{
-                                //System.out.println("client going to stop\n");
 				client.quit();
-                                //System.out.println("client has stopped\n");
 				mainFrame.setStartGameScreen();
 			}
 		});

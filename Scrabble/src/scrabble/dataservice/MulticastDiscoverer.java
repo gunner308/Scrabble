@@ -44,9 +44,6 @@ public class MulticastDiscoverer extends Thread
     {
         InetAddress address = game_host.get(hostName);
         long time = timeStamp.get(address);
-        /*if (time > 2 * HEARTBEAT_TIME) {
-            throw new IOException("Time out!");
-        }*/
         Socket tcpSocket = new Socket();
         tcpSocket.connect(new InetSocketAddress(address, TCP_PORT));
         return tcpSocket;
