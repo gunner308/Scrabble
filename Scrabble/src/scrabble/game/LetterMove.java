@@ -22,5 +22,10 @@ public class LetterMove {
             x = Integer.parseInt(_x);
             y = Integer.parseInt(_y);
         }
+        
+        public Tile getTile()
+        {
+        	return tile;
+        }
 
 }

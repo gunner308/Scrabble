@@ -32,7 +32,7 @@ public class TileLeftPanel extends JPanel{
 		}catch(IOException e){
 			e.printStackTrace();
 		}
-		num = new JLabel("" + client.countTile());
+		num = new JLabel("100");
 		num.setFont(new Font("Serif", Font.BOLD, 22));
 		num.setForeground(Color.white);
 		num.setBounds(w/4, h/3+5, 40, 30);
@@ -43,7 +43,10 @@ public class TileLeftPanel extends JPanel{
 	{
 		super.paintComponent(g);
 		g.drawImage(bag, 0, 0, null);
-		num.setText("" + client.countTile());
+		if (client.hasStarted())
+			num.setText("" + client.countTile());
+		else
+			num.setText("100");
 	}
 	
 }
