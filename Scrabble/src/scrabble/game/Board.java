@@ -118,7 +118,15 @@ public class Board {
     //check if the NEW tiles is in one row or one column and connect with each others
     private int isOneLine(Vector<LetterMove> currentMove)
     {
-        if (currentMove.size() == 1) return 1;
+        if (currentMove.size() == 1)
+        {
+            int x = currentMove.elementAt(0).x;
+            int y = currentMove.elementAt(0).y;
+
+            if (x > 0 && board[x-1][y].isOccupied()) return 1;
+            if (x < 14 && board[x+1][y].isOccupied()) return 1;
+            return 2;
+        }
         //more than 2 tiles in a move
         else
         {
@@ -278,9 +286,7 @@ public class Board {
             //System.out.println ("one line khac 0");
             if (checkConnected(currentMove)) 
             {
-                //System.out.println ("connected");
                 int x = isOneLine(currentMove);
-                //System.out.println ("return: "+ x);
                 return x;
             }//if connect
             else 
@@ -290,125 +296,96 @@ public class Board {
             }//not connect
         }
     }
+
+    private void makeHorizontalWord(int _x, int _y, Vector<LetterMove> currentMove )
+    {
+        String tmp = "";
+        int it = _y;
+        int x  = _x;
+        // horizontal
+        while (it > 0 && board[x][it-1].isOccupied())
+        {
+            it--;
+        }
+        Position pos = new Position (x, it);
+        while (it < 15 && board[x][it].isOccupied() || preOccupied(new Position(x, it), currentMove))
+        {
+            if (board[x][it].isOccupied()) tmp += board[x][it].getTile().letter;
+            else
+            {
+                for (int j=0; j<currentMove.size(); j++)
+                {
+                    if (currentMove.elementAt(j).x == x && currentMove.elementAt(j).y == it)
+                    {
+                        tmp += currentMove.elementAt(j).tile.letter;
+                    }
+                }
+            }
+            it++;
+        }
+
+        if (tmp.length()>1)
+        {
+            wordsToCheck.add(tmp.toLowerCase());
+            initPos.add(pos);
+        }
+    }
+
+    public void makeVerticalWord(int _x, int _y, Vector<LetterMove> currentMove)
+    {
+        int it = _x;
+        int y  = _y;
+        String tmp = "";
+        while (it > 0 && board[it-1][y].isOccupied())
+        {
+            it--;
+        }
+        Position pos = new Position (it, y);
+        while (it < 15 && board[it][y].isOccupied() || preOccupied(new Position(it, y), currentMove))
+        {
+            if (it < 15 && board[it][y].isOccupied()) tmp += board[it][y].getTile().letter;
+            else
+            {
+                for (int j=0; j<currentMove.size(); j++)
+                {
+                    if (currentMove.elementAt(j).y ==y && currentMove.elementAt(j).x == it)
+                    {
+                        tmp += currentMove.elementAt(j).tile.letter;
+                    }
+                }
+            }
+            it++;
+        }
+        if (tmp.length()>1)
+        {
+            wordsToCheck.add(tmp.toLowerCase());
+            initPos.add(pos);
+        }
+    }
     
     //make the word correspoding to the main direction 
     private void makeMainWord (Vector<LetterMove> currentMove)
     {
         if (currentMove.size() == 1)
         {
-            String tmp = "";
-            int it = currentMove.elementAt(0).y;
-            int x  = currentMove.elementAt(0).x;
-            // horizontal
-            while (it > 0 && board[x][it-1].isOccupied())
-            {
-                it--;
-            }
-            Position pos = new Position (x, it);
-            while (it < 15 && board[x][it].isOccupied() || preOccupied(new Position(x, it), currentMove))
-            {
-                if (board[x][it].isOccupied()) tmp += board[x][it].getTile().letter;
-                else
-                {
-                    for (int j=0; j<currentMove.size(); j++)
-                    {
-                        if (currentMove.elementAt(j).x == x && currentMove.elementAt(j).y == it)
-                        {
-                            tmp += currentMove.elementAt(j).tile.letter;
-                        }
-                    }
-                }
-                it++;
-            }
-            if (tmp.length()>1)
-            {
-                wordsToCheck.add(tmp.toLowerCase());
-                initPos.add(pos);
-            }
-
+            makeHorizontalWord(currentMove.elementAt(0).x, currentMove.elementAt(0).y, currentMove);
 
             // vertical
-            it = currentMove.elementAt(0).x;
-            int y  = currentMove.elementAt(0).y;
-            while (it > 0 && board[it-1][y].isOccupied())
-            {
-                it--;
-            }
-            pos = new Position (it, y);
-            while (it < 15 && board[it][y].isOccupied() || preOccupied(new Position(it, y), currentMove))
-            {
-                if (board[it][y].isOccupied()) tmp += board[it][y].getTile().letter;
-                else
-                {
-                    for (int j=0; j<currentMove.size(); j++)
-                    {
-                        if (currentMove.elementAt(j).y ==y && currentMove.elementAt(j).x == it)
-                        {
-                            tmp += currentMove.elementAt(j).tile.letter;
-                        }
-                    }
-                }
-                it++;
-            }
-            if (tmp.length()>1)
-            {
-                wordsToCheck.add(tmp.toLowerCase());
-                initPos.add(pos);
-            }
+            makeVerticalWord(currentMove.elementAt(0).x, currentMove.elementAt(0).y, currentMove);
         }
         else
         {
             if (isLine (currentMove) == 1)
             {
-                String tmp = "";
                 int it = findMin(currentMove);
                 int x = currentMove.elementAt(0).x;
-                while (it>0 && board[x][it-1].isOccupied()) it--;
-                initPos.add(new Position(x, it));
-
-                while (board[x][it].isOccupied() || preOccupied(new Position(x, it),currentMove))
-                {
-                    if (board[x][it].isOccupied()) tmp += board[x][it].getTile().letter;
-                    else 
-                    {
-                        for (int i=0; i<currentMove.size(); i++)
-                        {
-                            if (currentMove.elementAt(i).x == x && currentMove.elementAt(i).y == it)
-                            {
-                                tmp += currentMove.elementAt(i).tile.letter;
-                            }
-                        }
-                    }
-                    it++;
-                }
-
-                wordsToCheck.add(tmp.toLowerCase());
+                makeHorizontalWord(x, it, currentMove);
             }
             else if (isLine(currentMove) == 2)
             {
-                String tmp = "";
                 int it = findMin(currentMove);
                 int y = currentMove.elementAt(0).y;
-                while (it>0 && board[it-1][y].isOccupied()) it--;
-                initPos.add(new Position(it, y));
-
-                while (board[it][y].isOccupied() || preOccupied(new Position(it, y),currentMove))
-                {
-                    if (board[it][y].isOccupied()) tmp += board[it][y].getTile().letter;
-                    else
-                    {
-                        for (int i=0; i<currentMove.size(); i++)
-                        {
-                            if (currentMove.elementAt(i).y ==y && currentMove.elementAt(i).x == it)
-                            {
-                                tmp += currentMove.elementAt(i).tile.letter;
-                            }
-                        }
-                    }
-                    it++;
-                }
-
-                wordsToCheck.add(tmp.toLowerCase());
+                makeVerticalWord(it, y, currentMove);
             }
         }
     }
@@ -421,34 +398,7 @@ public class Board {
         {
             for (int i=0; i<m.size(); i++)
             {
-                String tmp = "";
-                int it = m.elementAt(i).x;
-                int y = m.elementAt(i).y;
-                while (it > 0 && board[it-1][y].isOccupied())
-                {
-                    it--;
-                }
-                Position pos = new Position (it, y);
-                while (it < 15 && board[it][y].isOccupied() || preOccupied(new Position(it, y), m))
-                {
-                    if (board[it][y].isOccupied()) tmp += board[it][y].getTile().letter;
-                    else
-                    {
-                        for (int j=0; j<m.size(); j++)
-                        {
-                            if (m.elementAt(j).y ==y && m.elementAt(j).x == it)
-                            {
-                                tmp += m.elementAt(j).tile.letter;
-                            }
-                        }
-                    }
-                    it++;
-                }
-                if (tmp.length()>1)
-                {
-                    wordsToCheck.add(tmp.toLowerCase());
-                    initPos.add(pos);
-                }
+                makeVerticalWord(m.elementAt(i).x, m.elementAt(i).y, m);
             }
         }
         //vertical
@@ -456,34 +406,7 @@ public class Board {
         {
             for (int i=0; i<m.size(); i++)
             {
-                String tmp = "";
-                int it = m.elementAt(i).y;
-                int x = m.elementAt(i).x;
-                while (it > 0 && board[x][it-1].isOccupied())
-                {
-                    it--;
-                }
-                Position pos = new Position (x, it);
-                while (it < 15 && board[x][it].isOccupied() || preOccupied(new Position(x, it), m))
-                {
-                    if (board[x][it].isOccupied()) tmp += board[x][it].getTile().letter;
-                    else
-                    {
-                        for (int j=0; j<m.size(); j++)
-                        {
-                            if (m.elementAt(j).x == x && m.elementAt(j).y == it)
-                            {
-                                tmp += m.elementAt(j).tile.letter;
-                            }
-                        }
-                    }
-                    it++;
-                }
-                if (tmp.length()>1)
-                {
-                    wordsToCheck.add(tmp.toLowerCase());
-                    initPos.add(pos);
-                }
+                makeHorizontalWord(m.elementAt(i).x, m.elementAt(i).y, m);
             }
         }
     }
